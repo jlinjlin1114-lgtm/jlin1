@@ -273,13 +273,7 @@
       }
     }
 
-    function quickNewsSearch(q) {
-      document.getElementById('news-query').value = q;
-      fetchNewsArticles();
-    }
-
-    // API 할당량 소모 없는 무료 Google News XML 피드 직접 파싱 (이중 프록시 백업)
-    async function fetchNewsArticles() {
+async function fetchNewsArticles() {
       const query = document.getElementById('news-query').value.trim();
       if (!query) return showToast('검색할 뉴스 키워드를 입력해 주세요!');
 
@@ -291,70 +285,40 @@
       btn.innerText = '기사 불러오는 중...';
       container.innerHTML = `<div class="col-span-2 text-center py-10 text-slate-500 text-sm loading-dots">📰 "${query}" 관련 최신 뉴스 기사를 가져오고 있습니다...</div>`;
 
-      const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ko&gl=KR&ceid=KR:ko`;
-      const proxies = [
-        `https://api.allorigins.win/get?url=${encodeURIComponent(rssUrl)}`,
-        `https://corsproxy.io/?${encodeURIComponent(rssUrl)}`
-      ];
-
-      let xmlText = '';
-      for (const proxyUrl of proxies) {
-        try {
-          const res = await fetch(proxyUrl);
-          if (!res.ok) continue;
-          if (proxyUrl.includes('allorigins')) {
-            const json = await res.json();
-            xmlText = json.contents || '';
-          } else {
-            xmlText = await res.text();
-          }
-          if (xmlText && xmlText.includes('<item>')) break;
-        } catch (e) {}
-      }
-
       try {
-        if (!xmlText || !xmlText.includes('<item>')) {
-          throw new Error('뉴스 피드를 가져오지 못했습니다.');
+        const res = await fetch(`/api/news?q=${encodeURIComponent(query)}`);
+        const data = await res.json();
+        const items = data.items || [];
+
+        if (items.length === 0) {
+          container.innerHTML = `<div class="col-span-2 text-center py-10 text-slate-400 bg-slate-50 rounded-2xl border border-slate-200 text-sm">검색된 최신 기사가 없습니다. 다른 키워드로 검색해 보세요.</div>`;
+          return;
         }
 
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-        const items = Array.from(xmlDoc.querySelectorAll('item')).slice(0, 8);
-
         container.innerHTML = items.map((item) => {
-          const rawTitle = item.querySelector('title')?.textContent || '';
-          const link = item.querySelector('link')?.textContent || '#';
-          const pubDateRaw = item.querySelector('pubDate')?.textContent || '';
-          const sourceName = item.querySelector('source')?.textContent || 'NEWS';
-
-          // 제목에서 '- 언론사명' 분리
-          const titleParts = rawTitle.split(' - ');
-          const cleanTitle = titleParts.length > 1 ? titleParts.slice(0, -1).join(' - ') : rawTitle;
-
-          // 날짜 한국식 포맷
           let dateStr = '최신 기사';
-          if (pubDateRaw) {
-            const d = new Date(pubDateRaw);
+          if (item.pubDate) {
+            const d = new Date(item.pubDate);
             if (!isNaN(d)) dateStr = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
           }
 
-          const safeTitle = cleanTitle.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-          const safeSource = sourceName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+          const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+          const safeSource = (item.source || 'NEWS').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
           return `
             <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5 card-hover flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between gap-2 mb-2">
-                  <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[11px] font-bold">${sourceName}</span>
+                  <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[11px] font-bold">${item.source || 'NEWS'}</span>
                   <span class="text-xs text-slate-400">${dateStr}</span>
                 </div>
-                <h3 class="text-sm font-bold text-slate-900 leading-snug mb-3">${cleanTitle}</h3>
+                <h3 class="text-sm font-bold text-slate-900 leading-snug mb-3">${item.title}</h3>
               </div>
               <div class="flex items-center gap-2 pt-3 border-t border-slate-200/70">
                 <button onclick="useNewsForPost('${query.replace(/'/g, "\\'")}', '${safeTitle}', '${safeSource}')" class="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition">
                   이 기사로 글쓰기
                 </button>
-                <a href="${link}" target="_blank" class="py-2 px-3 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
+                <a href="${item.link}" target="_blank" class="py-2 px-3 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
                   기사 원문 보기 ↗
                 </a>
               </div>
@@ -362,7 +326,7 @@
           `;
         }).join('');
       } catch (err) {
-        container.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-600 bg-slate-50 rounded-2xl border border-slate-200 text-xs px-4">일시적으로 뉴스 피드 연결이 지연되고 있습니다. 오른쪽 <strong>[네이버 뉴스 원문창 ↗]</strong> 버튼을 눌러 기사를 확인해 보세요.</div>`;
+        container.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-600 bg-slate-50 rounded-2xl border border-slate-200 text-xs px-4">뉴스 서버 연결 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>`;
       } finally {
         btn.disabled = false;
         btn.innerText = '뉴스 기사 수집하기';
