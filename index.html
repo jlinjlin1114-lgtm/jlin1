@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>크리에이터 키워드 & AI 글쓰기 스튜디오</title>
+  <title>크리에이터 뉴스·레퍼런스 & AI 글쓰기 스튜디오</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
   <style>
     body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; color: #1e293b; }
-    .tab-active { background-color: #0f172a; color: #ffffff; border-color: #0f172a; }
     .card-hover { transition: all 0.2s ease; }
     .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06); }
     @keyframes pulse-fast { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
@@ -22,7 +21,7 @@
     <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
         <span class="w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-sm">글</span>
-        <span class="font-bold text-base sm:text-lg tracking-tight text-slate-900">크리에이터 키워드 & AI 원고 스튜디오</span>
+        <span class="font-bold text-base sm:text-lg tracking-tight text-slate-900">크리에이터 뉴스·레퍼런스 & AI 스튜디오</span>
       </div>
       <div class="flex items-center gap-2 text-xs font-medium">
         <button onclick="toggleRuleModal()" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 transition font-semibold">
@@ -43,7 +42,7 @@
         <button onclick="toggleApiModal()" class="text-slate-400 hover:text-slate-600 text-xl">&times;</button>
       </div>
       <p class="text-xs text-slate-600 leading-relaxed mb-4">
-        Google AI Studio에서 발급받은 무료 API 키를 한 번만 입력해 두시면, 내 브라우저에만 안전하게 저장되어 대시보드에서 바로 블로그 글을 생성할 수 있습니다.
+        Google AI Studio에서 발급받은 무료 API 키를 입력해 두시면, 내 브라우저에만 저장되어 바로 블로그 글을 생성할 수 있습니다.
       </p>
       <input type="password" id="api-key-input" placeholder="API 키 입력" class="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl mb-3 focus:outline-none focus:border-emerald-500">
       <div class="flex items-center justify-between">
@@ -93,7 +92,7 @@
         <!-- 왼쪽: 입력 설정 -->
         <div class="lg:col-span-5 space-y-4">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">1. 발행할 블로그 채널 선택</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">1. 발행할 블로그 채널 성격</label>
             <select id="gen-channel" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 font-medium focus:outline-none focus:border-emerald-500">
               <option value="힐링파민 (건강 · 제철식재료 · 혈당/혈관관리)">힐링파민 (건강 · 제철식재료 · 혈당/혈관관리)</option>
               <option value="띵동슉슉 (연예 · 방송 · 화제 트렌드)">띵동슉슉 (연예 · 방송 · 화제 트렌드)</option>
@@ -108,22 +107,22 @@
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">3. 블로그 제목</label>
-            <input type="text" id="gen-title" placeholder="직접 입력하거나 아래 카드에서 선택하세요" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl font-semibold focus:outline-none focus:border-emerald-500">
+            <label class="block text-xs font-bold text-slate-700 mb-1">3. 블로그 제목 (비워두면 AI가 후킹 제목 자동 추천)</label>
+            <input type="text" id="gen-title" placeholder="직접 입력하거나 아래 뉴스/레퍼런스에서 가져오세요" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl font-semibold focus:outline-none focus:border-emerald-500">
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">4. 꼭 넣을 핵심 포인트 / 내 경험 메모</label>
-            <textarea id="gen-point" rows="2" placeholder="강조할 효능, 조리법, 실제 경험이나 상품 장점 메모" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500"></textarea>
+            <label class="block text-xs font-bold text-slate-700 mb-1">4. 참고할 뉴스 기사 내용 / 팩트 메모</label>
+            <textarea id="gen-point" rows="3" placeholder="아래 뉴스 검색에서 가져온 기사 내용이나, 글에 꼭 녹여낼 핵심 팩트를 적어주세요" class="w-full px-3.5 py-2 text-xs leading-relaxed border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500"></textarea>
           </div>
 
           <!-- 벤치마킹 글 입력창 -->
           <div class="pt-1">
             <div class="flex items-center justify-between mb-1">
-              <label class="block text-xs font-bold text-emerald-700">5. 벤치마킹 원고 (선택 · 구조/흐름 그대로 복제)</label>
+              <label class="block text-xs font-bold text-emerald-700">5. 벤치마킹할 타 블로그 글 (선택 · 구조/흐름 복제)</label>
               <button onclick="document.getElementById('gen-benchmark').value=''" class="text-[11px] text-slate-400 hover:text-slate-600">비우기</button>
             </div>
-            <textarea id="gen-benchmark" rows="4" placeholder="구조를 그대로 따라 쓰고 싶은 기존 블로그 글이나 예시 본문을 여기에 붙여넣으세요. 비워두면 기본 규칙대로 작성됩니다." class="w-full px-3.5 py-2 text-xs leading-relaxed bg-emerald-50/40 border border-emerald-200 rounded-xl focus:outline-none focus:border-emerald-500"></textarea>
+            <textarea id="gen-benchmark" rows="4" placeholder="참고하고 싶은 다른 블로그 포스팅 본문을 붙여넣거나, 아래 [타 블로그 레퍼런스]에서 불러오세요." class="w-full px-3.5 py-2 text-xs leading-relaxed bg-emerald-50/40 border border-emerald-200 rounded-xl focus:outline-none focus:border-emerald-500"></textarea>
           </div>
 
           <button onclick="generateBlogPost()" id="generate-btn" class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl shadow-sm transition flex items-center justify-center gap-2">
@@ -140,62 +139,83 @@
               <button onclick="clearResult()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs rounded-lg">지우기</button>
             </div>
           </div>
-          <textarea id="gen-output" rows="19" placeholder="왼쪽에서 정보를 입력한 뒤 [AI로 블로그 본문 생성하기] 버튼을 누르면, 소제목 이모지 없이 깔끔하게 정리된 원고가 여기에 작성됩니다." class="w-full flex-1 p-4 text-sm leading-relaxed bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+          <textarea id="gen-output" rows="20" placeholder="왼쪽에서 정보를 입력한 뒤 [AI로 블로그 본문 생성하기] 버튼을 누르면, 실시간으로 타자 치듯 글이 작성됩니다." class="w-full flex-1 p-4 text-sm leading-relaxed bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 resize-none"></textarea>
         </div>
       </div>
     </section>
 
-    <!-- 02. 채널별 & 시즌별 키워드 큐레이션 보드 -->
-    <section>
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5">
+    <!-- 02. 뉴스 기사 수집 & 타 블로그 레퍼런스 허브 -->
+    <section class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
         <div>
-          <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">02 / KEYWORD & TITLE BANK</span>
-          <h2 class="text-xl font-extrabold text-slate-900">채널별 추천 키워드 & 후킹 제목 후보</h2>
-          <p class="text-sm text-slate-500 mt-0.5">카드에서 <strong>[이 주제로 글쓰기]</strong>를 누르면 위 생성기에 자동 입력됩니다.</p>
+          <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">02 / EXTERNAL RESEARCH & REFERENCE HUB</span>
+          <h2 class="text-xl font-extrabold text-slate-900">실시간 뉴스 기사 수집 & 타 블로그 벤치마킹 창고</h2>
+          <p class="text-sm text-slate-500 mt-0.5">외부 뉴스 기사를 바로 검색해서 글감으로 가져오거나, 참고할 타 블로그 글 구조를 저장해 두고 꺼내 쓰세요.</p>
         </div>
 
-        <div class="flex items-center gap-2">
-          <div class="relative w-full sm:w-56">
-            <input type="text" id="search-input" oninput="renderCards()" placeholder="키워드·주제 검색..." class="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500">
-            <span class="absolute left-3 top-2.5 text-slate-400 text-sm">🔍</span>
-          </div>
-          <button onclick="toggleAddCardForm()" class="px-3.5 py-2 bg-slate-900 text-white text-xs font-semibold rounded-xl hover:bg-slate-800 whitespace-nowrap">
-            + 새 글감 추가
+        <div class="flex bg-slate-100 p-1 rounded-xl self-start">
+          <button onclick="switchHubTab('news')" id="hub-tab-news" class="px-4 py-2 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm transition">
+            📰 실시간 뉴스 기사 가져오기
+          </button>
+          <button onclick="switchHubTab('ref')" id="hub-tab-ref" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+            📑 타 블로그 레퍼런스 저장소
           </button>
         </div>
       </div>
 
-      <!-- 새 키워드 직접 추가 폼 -->
-      <div id="add-card-form" class="hidden bg-white p-5 rounded-2xl border border-emerald-200 mb-6 shadow-sm">
-        <h3 class="text-sm font-bold text-slate-900 mb-3">나만의 새 키워드 카드 등록 (브라우저에 영구 저장됨)</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-3">
-          <select id="new-channel" class="px-3 py-2 text-sm border border-slate-200 rounded-lg">
-            <option value="힐링파민">힐링파민</option>
-            <option value="띵동슉슉">띵동슉슉</option>
-            <option value="한조각">한조각</option>
-            <option value="커넥트샵">커넥트샵</option>
-          </select>
-          <input type="text" id="new-season" placeholder="분류/시즌 (예: 겨울철 건강)" class="px-3 py-2 text-sm border border-slate-200 rounded-lg">
-          <input type="text" id="new-keyword" placeholder="타겟 키워드" class="sm:col-span-2 px-3 py-2 text-sm border border-slate-200 rounded-lg">
+      <!-- [탭 1] 실시간 뉴스 기사 수집기 -->
+      <div id="hub-panel-news" class="pt-6 space-y-5">
+        <div class="flex flex-col sm:flex-row gap-2.5">
+          <input type="text" id="news-query" onkeypress="if(event.key==='Enter') fetchNewsArticles()" placeholder="뉴스 검색어 입력 (예: 제철 굴 효능, 연말정산 공제, 화제 예능 등)" class="flex-1 px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:border-blue-500">
+          <button onclick="fetchNewsArticles()" id="news-search-btn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition whitespace-nowrap">
+            뉴스 기사 불러오기
+          </button>
+          <a id="naver-news-link" href="https://search.naver.com/search.naver?where=news&query=건강" target="_blank" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl flex items-center justify-center whitespace-nowrap">
+            네이버 뉴스 원문창 ↗
+          </a>
         </div>
-        <input type="text" id="new-title" placeholder="후킹 제목 입력" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg mb-3">
-        <div class="flex gap-2">
-          <input type="text" id="new-tip" placeholder="글쓰기 핵심 포인트 메모" class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg">
-          <button onclick="addNewCard()" class="px-5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700">등록하기</button>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <span class="text-slate-400 font-medium">빠른 검색:</span>
+          <button onclick="quickNewsSearch('겨울 제철 음식 효능')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700">겨울 제철 음식 효능</button>
+          <button onclick="quickNewsSearch('혈당 관리 식단')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700">혈당 관리 식단</button>
+          <button onclick="quickNewsSearch('유퀴즈 화제')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700">유퀴즈 화제</button>
+          <button onclick="quickNewsSearch('연말정산 환급')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700">연말정산 환급</button>
+          <button onclick="quickNewsSearch('난방비 절약 꿀팁')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700">난방비 절약 꿀팁</button>
+        </div>
+
+        <div id="news-results-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="col-span-2 text-center py-10 text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-sm">
+            위 검색창에 키워드를 입력하고 <strong>[뉴스 기사 불러오기]</strong>를 누르면 최신 기사 목록이 카드로 나타납니다.<br>
+            기사 카드에서 <strong>[이 기사로 글쓰기]</strong>를 누르면 위쪽 AI 생성기에 자동으로 들어갑니다!
+          </div>
         </div>
       </div>
 
-      <!-- 필터 버튼 -->
-      <div class="flex flex-wrap gap-2 mb-6" id="filter-tabs">
-        <button onclick="setFilter('전체')" class="filter-btn tab-active px-4 py-2 rounded-xl text-sm font-semibold border border-slate-200 transition">전체 보기 (<span id="total-badge">0</span>)</button>
-        <button onclick="setFilter('힐링파민')" class="filter-btn bg-white text-slate-700 hover:bg-slate-100 px-4 py-2 rounded-xl text-sm font-semibold border border-slate-200 transition">힐링파민</button>
-        <button onclick="setFilter('띵동슉슉')" class="filter-btn bg-white text-slate-700 hover:bg-slate-100 px-4 py-2 rounded-xl text-sm font-semibold border border-slate-200 transition">띵동슉슉</button>
-        <button onclick="setFilter('한조각')" class="filter-btn bg-white text-slate-700 hover:bg-slate-100 px-4 py-2 rounded-xl text-sm font-semibold border border-slate-200 transition">한조각</button>
-        <button onclick="setFilter('커넥트샵')" class="filter-btn bg-white text-slate-700 hover:bg-slate-100 px-4 py-2 rounded-xl text-sm font-semibold border border-slate-200 transition">두루두루 커넥트샵</button>
-      </div>
+      <!-- [탭 2] 타 블로그 레퍼런스 저장소 -->
+      <div id="hub-panel-ref" class="hidden pt-6 space-y-5">
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-slate-600">벤치마킹하고 싶은 <strong>다른 블로거의 글 구조, 도입부 패턴, 전체 본문</strong>을 저장해 두면 언제든 한 번의 클릭으로 불러올 수 있습니다.</p>
+          <button onclick="toggleRefForm()" class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 whitespace-nowrap">
+            + 새 타 블로그 참고글 저장
+          </button>
+        </div>
 
-      <!-- 카드 리스트 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="cards-container"></div>
+        <div id="ref-add-form" class="hidden bg-emerald-50/50 p-5 rounded-2xl border border-emerald-200 space-y-3">
+          <h3 class="text-sm font-bold text-slate-900">참고할 타 블로그 글 / 구조 템플릿 등록</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <input type="text" id="ref-tag" placeholder="분류 태그 (예: 건강정보형, 이슈후킹형)" class="px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg">
+            <input type="text" id="ref-title" placeholder="참고 글 제목 또는 출처 메모" class="sm:col-span-2 px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg">
+          </div>
+          <textarea id="ref-body" rows="5" placeholder="벤치마킹할 다른 블로그 글의 본문 전체나 구조 뼈대를 그대로 붙여넣으세요..." class="w-full p-3 text-xs leading-relaxed bg-white border border-slate-200 rounded-lg"></textarea>
+          <div class="flex justify-end gap-2">
+            <button onclick="toggleRefForm()" class="px-4 py-2 text-xs text-slate-600">취소</button>
+            <button onclick="saveReference()" class="px-5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700">저장소에 보관하기</button>
+          </div>
+        </div>
+
+        <div id="ref-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
     </section>
 
   </main>
@@ -214,84 +234,180 @@
 6. 마무리 및 태그: 따뜻한 마무리 인사 후, 맨 마지막 줄에는 검색 유입을 돕는 핵심 해시태그 10개를 #태그 형식으로 나열할 것.
 7. 출력 형식: 불필요한 인사말이나 부연 설명 없이 바로 블로그 본문 내용만 출력할 것.`;
 
-    const defaultKeywords = [
+    const defaultReferences = [
       {
-        channel: "힐링파민",
-        season: "11월~겨울 제철",
-        keyword: "컬리플라워 강황 에어프라이어",
-        title: "그냥 찌지 마세요! 컬리플라워에 '이 가루' 뿌려 구웠더니 혈관 싹 씻기는 보약이 됩니다",
-        tip: "강황(커큐민)+후추(피페린)+올리브오일 흡수율 조합 강조 / 에어프라이어 조리 컷 활용"
+        id: 1,
+        tag: "건강/식재료 정보형",
+        title: "상위노출 건강 블로그 표준 구조 (오해 교정 -> 효능 -> 섭취법 -> 주의사항)",
+        body: `평소 몸에 좋다고 해서 무심코 챙겨 드셨던 음식, 오히려 독이 될 수 있다는 사실 알고 계셨나요?\n\n오늘은 많은 분들이 헷갈려 하시는 올바른 섭취법과 핵심 효능을 한눈에 정리해 드릴게요.\n\n[사진 1: 식재료 원물 클로즈업]\n\n1. 우리가 몰랐던 진짜 핵심 효능\n이 식재료에는 항산화 성분이 풍부해 혈관 속 노폐물을 비워주고 염증 수치를 낮추는 데 큰 도움을 줍니다.\n\n[사진 2: 영양 성분을 보여주는 연출 컷]\n\n2. 흡수율을 2배 높이는 올바른 손질과 조리법\n그냥 드시는 것보다 살짝 익히거나 건강한 지방과 함께 곁들이면 체내 흡수율이 훨씬 높아집니다.\n\n[사진 3: 손질하는 과정]\n[사진 4: 완성된 요리 모습]\n\n3. 섭취 전 반드시 확인해야 할 주의사항\n아무리 좋은 음식도 과유불급이에요. 평소 위장이 약하거나 특정 질환이 있다면 하루 권장량을 지켜 드시는 것이 안전합니다.\n\n[사진 5: 적정 섭취량 예시]\n[사진 6: 건강한 식탁 마무리 컷]\n\n오늘 알려드린 작은 습관 하나로 가족 건강 든든하게 챙겨보시길 바랄게요!`
       },
       {
-        channel: "힐링파민",
-        season: "연중/혈당관리",
-        keyword: "두부 먹는법 췌장 건강",
-        title: "아침 공복에 두부 반 모, 그냥 드시나요? 췌장 살리고 혈당 스파이크 막는 의외의 조합",
-        tip: "생두부 vs 얼린두부 단백질 밀도 비교 + 들기름/식초 곁들임 포인트"
-      },
-      {
-        channel: "힐링파민",
-        season: "겨울철/신장",
-        keyword: "젓갈 나트륨 신장 건강",
-        title: "밥도둑 젓갈, 무심코 먹다 신장 망가집니다! 나트륨 싹 빼고 건강하게 먹는 1분 비법",
-        tip: "칼륨 풍부한 채소(오이·무·부추)와 함께 먹어야 하는 이유 설명"
-      },
-      {
-        channel: "힐링파민",
-        season: "11월~2월 제철",
-        keyword: "생굴 세척법 노로바이러스",
-        title: "제철 생굴, 물에 헹구기만 하면 큰일 납니다! 비린내와 세균 싹 잡는 천일염·무즙 세척법",
-        tip: "굴 씻는 과정 클로즈업 + 익혀 먹을 때와 생식할 때 영양 차이 정리"
-      },
-      {
-        channel: "띵동슉슉",
-        season: "예능/화제인물",
-        keyword: "유퀴즈 출연진 근황 화제",
-        title: "방송 직후 검색어 1위 찍은 그 장면! 10년 만에 입 연 톱스타의 반전 근황과 속사정",
-        tip: "홈판 유입용 스토리텔링형 제목 / 방송 핵심 발언 요약 및 대중 반응 정리"
-      },
-      {
-        channel: "띵동슉슉",
-        season: "드라마/결말",
-        keyword: "주말드라마 시청률 줄거리",
-        title: "첫 회부터 시청률 폭발한 이유 있었네… 4050 세대 과몰입 부른 명장면 3가지",
-        tip: "인물 관계도 핵심 갈등 + 다음 회차 관전 포인트 정리"
-      },
-      {
-        channel: "한조각",
-        season: "연말/생활경제",
-        keyword: "연말정산 환급금 미리보기",
-        title: "13월의 월급인 줄 알았는데 세금 폭탄? 11월 지나기 전 지금 당장 챙겨야 할 공제 항목 3가지",
-        tip: "직장인·맞벌이 부부 기준 체크리스트 + 카드 공제 황금비율 설명"
-      },
-      {
-        channel: "한조각",
-        season: "소비트렌드",
-        keyword: "겨울 난방비 절약 방법",
-        title: "보일러 외출 모드 누르면 오히려 요금 폭탄? 도시가스비 30% 아끼는 진짜 난방 공식",
-        tip: "지역난방 vs 개별난방 차이 + 단열 뽁뽁이·가습기 병행 원리"
-      },
-      {
-        channel: "커넥트샵",
-        season: "직장인/데스크",
-        keyword: "사무실 데스크테리어 추천템",
-        title: "돈 아까워서 안 샀는데 막상 쓰니 삶의 질 수직 상승한 사무실 책상 필수템 3가지",
-        tip: "40대 직장인 공감 스토리 도입 + 실제 사용 전후 불편함 해소 포인트"
-      },
-      {
-        channel: "커넥트샵",
-        season: "집안일/청소",
-        keyword: "주방 찌든때 청소템 추천",
-        title: "수세미로 박박 문지르던 지난날이 후회됩니다… 뿌리고 5분 뒤 닦아내면 끝나는 주방 치트키",
-        tip: "주부 손목 부담 덜어주는 점 강조 + 전후 비교 느낌의 생생한 후기 톤"
+        id: 2,
+        tag: "이슈/트렌드 스토리형",
+        title: "홈판 클릭률 높은 이슈 리뷰 구조 (화제 장면 -> 배경 설명 -> 대중 반응 -> 관전 포인트)",
+        body: `어제 방송 직후 실시간 검색어와 커뮤니티를 뜨겁게 달군 그 장면, 다들 보셨나요?\n\n짧은 순간이었지만 그동안 알려지지 않았던 진심이 전해지면서 많은 분들의 공감을 불러일으켰는데요.\n\n[사진 1: 방송 화제 장면 이미지]\n\n화제가 된 결정적인 이유\n이번 방송에서 특히 눈길을 끈 부분은 꾸밈없이 솔직하게 털어놓은 속사정이었습니다.\n\n[사진 2: 핵심 발언 관련 자료]\n\n네티즌과 시청자들의 실제 반응\n방송이 끝나자마자 댓글창에는 응원과 놀라움이 섞인 반응들이 빠르게 이어지고 있습니다.\n\n[사진 3: 반응 요약 이미지]\n[사진 4: 과거 모습과 비교 컷]\n\n앞으로가 더욱 기대되는 행보\n이번 일을 계기로 앞으로 어떤 새로운 모습을 보여줄지 많은 이들의 관심이 집중되고 있습니다.\n\n[사진 5: 향후 활동 예고 컷]\n[사진 6: 마무리 이미지]\n\n여러분은 이번 소식 어떻게 보셨나요? 댓글로 편하게 의견 나눠주세요!`
       }
     ];
 
-    let keywordData = JSON.parse(localStorage.getItem('custom_keyword_bank')) || defaultKeywords;
-    let currentFilter = '전체';
+    let referenceList = JSON.parse(localStorage.getItem('external_blog_refs')) || defaultReferences;
 
     updateApiStatus();
-    renderCards();
+    renderReferences();
+
+    function switchHubTab(tab) {
+      const newsPanel = document.getElementById('hub-panel-news');
+      const refPanel = document.getElementById('hub-panel-ref');
+      const newsBtn = document.getElementById('hub-tab-news');
+      const refBtn = document.getElementById('hub-tab-ref');
+
+      if (tab === 'news') {
+        newsPanel.classList.remove('hidden');
+        refPanel.classList.add('hidden');
+        newsBtn.className = 'px-4 py-2 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm transition';
+        refBtn.className = 'px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+      } else {
+        newsPanel.classList.add('hidden');
+        refPanel.classList.remove('hidden');
+        refBtn.className = 'px-4 py-2 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm transition';
+        newsBtn.className = 'px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+      }
+    }
+
+    function quickNewsSearch(q) {
+      document.getElementById('news-query').value = q;
+      fetchNewsArticles();
+    }
+
+    async function fetchNewsArticles() {
+      const query = document.getElementById('news-query').value.trim();
+      if (!query) return showToast('검색할 뉴스 키워드를 입력해 주세요!');
+
+      document.getElementById('naver-news-link').href = `https://search.naver.com/search.naver?where=news&query=${encodeURIComponent(query)}`;
+
+      const btn = document.getElementById('news-search-btn');
+      const container = document.getElementById('news-results-container');
+      btn.disabled = true;
+      btn.innerText = '기사 불러오는 중...';
+      container.innerHTML = `<div class="col-span-2 text-center py-10 text-slate-500 text-sm loading-dots">📰 "${query}" 관련 최신 뉴스 기사를 가져오고 있습니다...</div>`;
+
+      try {
+        const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=ko&gl=KR&ceid=KR:ko`;
+        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+
+        if (data.status !== 'ok' || !data.items || data.items.length === 0) {
+          container.innerHTML = `<div class="col-span-2 text-center py-10 text-slate-400 bg-slate-50 rounded-2xl border border-slate-200 text-sm">검색된 최신 기사가 없습니다. 다른 키워드로 검색해 보세요.</div>`;
+          return;
+        }
+
+        const articles = data.items.slice(0, 8);
+        container.innerHTML = articles.map((item) => {
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = item.description || '';
+          const cleanDesc = (tempDiv.textContent || tempDiv.innerText || '').trim();
+          const pubDate = item.pubDate ? item.pubDate.split(' ')[0] : '최신 기사';
+          const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+          const safeDesc = cleanDesc.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+          return `
+            <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5 card-hover flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between gap-2 mb-2">
+                  <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[11px] font-bold">NEWS</span>
+                  <span class="text-xs text-slate-400">${pubDate}</span>
+                </div>
+                <h3 class="text-sm font-bold text-slate-900 leading-snug mb-2">${item.title}</h3>
+                <p class="text-xs text-slate-600 line-clamp-3 leading-relaxed mb-4">${cleanDesc || '기사 원문 링크에서 상세 내용을 확인하세요.'}</p>
+              </div>
+              <div class="flex items-center gap-2 pt-2 border-t border-slate-200/70">
+                <button onclick="useNewsForPost('${query.replace(/'/g, "\\'")}', '${safeTitle}', '${safeDesc}')" class="flex-1 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition">
+                  이 기사로 글쓰기
+                </button>
+                <a href="${item.link}" target="_blank" class="py-2 px-3 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
+                  기사 원문 보기 ↗
+                </a>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = `<div class="col-span-2 text-center py-8 text-red-500 bg-red-50 rounded-2xl text-xs">뉴스 피드를 불러오는 중 일시적 오류가 발생했습니다. 오른쪽 [네이버 뉴스 원문창 ↗] 버튼을 이용해 주세요.</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '뉴스 기사 불러오기';
+      }
+    }
+
+    function useNewsForPost(keyword, newsTitle, newsDesc) {
+      document.getElementById('gen-keyword').value = keyword;
+      document.getElementById('gen-title').value = '';
+      document.getElementById('gen-point').value = `[참고 뉴스 헤드라인] ${newsTitle}\n[기사 핵심 내용] ${newsDesc}\n-> 위 뉴스 팩트를 바탕으로 내 블로그 독자에게 도움이 되도록 알기 쉽게 풀어 써주세요.`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('뉴스 기사 내용이 상단 생성기 [4. 참고 뉴스/팩트]에 입력되었습니다!');
+    }
+
+    function toggleRefForm() {
+      document.getElementById('ref-add-form').classList.toggle('hidden');
+    }
+
+    function saveReference() {
+      const tag = document.getElementById('ref-tag').value.trim() || '벤치마킹 구조';
+      const title = document.getElementById('ref-title').value.trim();
+      const body = document.getElementById('ref-body').value.trim();
+
+      if (!title || !body) return showToast('참고 글 제목과 본문 내용을 모두 입력해 주세요.');
+
+      referenceList.unshift({ id: Date.now(), tag, title, body });
+      localStorage.setItem('external_blog_refs', JSON.stringify(referenceList));
+
+      document.getElementById('ref-tag').value = '';
+      document.getElementById('ref-title').value = '';
+      document.getElementById('ref-body').value = '';
+      toggleRefForm();
+      renderReferences();
+      showToast('타 블로그 참고글이 저장소에 보관되었습니다!');
+    }
+
+    function deleteReference(id) {
+      referenceList = referenceList.filter(r => r.id !== id);
+      localStorage.setItem('external_blog_refs', JSON.stringify(referenceList));
+      renderReferences();
+      showToast('삭제되었습니다.');
+    }
+
+    function applyReference(id) {
+      const target = referenceList.find(r => r.id === id);
+      if (!target) return;
+      document.getElementById('gen-benchmark').value = target.body;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('상단 [5. 벤치마킹할 타 블로그 글] 칸에 구조가 세팅되었습니다!');
+    }
+
+    function renderReferences() {
+      const container = document.getElementById('ref-list-container');
+      if (referenceList.length === 0) {
+        container.innerHTML = `<div class="col-span-2 text-center py-10 text-slate-400 bg-slate-50 rounded-2xl text-sm">저장된 타 블로그 레퍼런스가 없습니다. 오른쪽 위 버튼으로 추가해 보세요!</div>`;
+        return;
+      }
+
+      container.innerHTML = referenceList.map(item => `
+        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5 card-hover flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-xs font-bold">${item.tag}</span>
+              <button onclick="deleteReference(${item.id})" class="text-xs text-slate-400 hover:text-red-500">삭제</button>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900 mb-2">${item.title}</h3>
+            <pre class="text-xs text-slate-600 bg-white p-3 rounded-xl border border-slate-200/80 whitespace-pre-wrap font-sans max-h-32 overflow-y-auto mb-4">${item.body}</pre>
+          </div>
+          <button onclick="applyReference(${item.id})" class="w-full py-2.5 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg transition">
+            이 글 구조 벤치마킹 칸에 넣기 ↑
+          </button>
+        </div>
+      `).join('');
+    }
 
     function toggleRuleModal() {
       const modal = document.getElementById('rule-modal');
@@ -340,7 +456,7 @@
       }
     }
 
-    // AI 본문 생성 실행 (gemini-3.8-flash 우선 직행 + Interactions API 폴백)
+    // 실시간 스트리밍 원고 생성 (1~2초 만에 글자가 바로 찍히도록 개선)
     async function generateBlogPost() {
       const apiKey = localStorage.getItem('gemini_api_key');
       if (!apiKey) {
@@ -355,15 +471,15 @@
       const benchmark = document.getElementById('gen-benchmark').value.trim();
       const activeRules = localStorage.getItem('custom_writing_rules') || DEFAULT_WRITING_RULES;
 
-      if (!title && !keyword) {
-        return showToast('타겟 키워드나 제목을 먼저 입력해 주세요!');
+      if (!title && !keyword && !point) {
+        return showToast('키워드, 제목, 또는 참고할 뉴스 내용을 먼저 입력해 주세요!');
       }
 
       const btn = document.getElementById('generate-btn');
       const output = document.getElementById('gen-output');
       btn.disabled = true;
-      btn.innerHTML = '<span class="loading-dots">AI가 맞춤형 블로그 원고를 작성하고 있습니다...</span>';
-      output.value = '원고 작성을 시작합니다... (약 10초 소요)';
+      btn.innerHTML = '<span class="loading-dots">AI가 원고를 작성 중입니다...</span>';
+      output.value = 'AI 서버와 연결 중입니다...';
 
       let benchmarkInstruction = '';
       if (benchmark) {
@@ -375,64 +491,90 @@ ${benchmark}
 </벤치마킹 원고>\n`;
       }
 
+      const titleInstruction = title
+        ? `[블로그 제목] ${title}`
+        : `[블로그 제목] 미정 (본문 맨 첫 줄에 클릭을 부르는 매력적인 블로그 제목 1개를 먼저 제안한 뒤 한 줄 띄우고 본문을 시작하세요)`;
+
       const prompt = `당신은 네이버 블로그 인기 크리에이터입니다. 아래 입력 정보와 작성 규칙에 맞춰 블로그 본문을 작성해 주세요.
 
 [채널 성격] ${channel}
 [메인 키워드] ${keyword}
-[블로그 제목] ${title}
-[핵심 포인트/메모] ${point}
+${titleInstruction}
+[참고 뉴스 및 핵심 팩트] ${point}
 ${benchmarkInstruction}
 ${activeRules}
 
 ※ 중요 강조: 소제목 앞에는 어떠한 이모지나 그림 기호도 절대 사용하지 마세요.`;
 
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 35000);
+        // 1단계: 내 계정에서 사용 가능한 모델 목록 조회 (2.5 구버전 제외, 3.x 또는 최신 flash 우선)
+        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        const listData = await listRes.json();
+        if (listData.error) throw new Error(`API 키 오류: ${listData.error.message}`);
 
-        // 1차 시도: gemini-3.8-flash generateContent 호출
-        let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
+        const models = (listData.models || []).filter(m =>
+          m.supportedGenerationMethods && m.supportedGenerationMethods.includes('generateContent')
+        );
+
+        // 2.5를 제외한 flash 모델 우선 선택
+        let targetModel = models.find(m => m.name.includes('flash') && !m.name.includes('2.5'))
+                       || models.find(m => !m.name.includes('2.5'))
+                       || models[0];
+
+        const modelPath = targetModel ? targetModel.name : 'models/gemini-3.8-flash';
+        output.value = `[${modelPath.replace('models/', '')}] 연결 완료! 원고를 작성합니다...\n\n`;
+
+        // 2단계: 스트리밍(streamGenerateContent)으로 실시간 글자 출력
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/${modelPath}:streamGenerateContent?alt=sse&key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }]
           })
         });
 
-        let data = await response.json();
-
-        // 만약 generateContent 미지원 안내 시 Interactions API로 자동 전환
-        if (data.error) {
-          const interRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/interactions?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: controller.signal,
-            body: JSON.stringify({
-              model: 'gemini-3.8-flash',
-              input: prompt
-            })
-          });
-          const interData = await interRes.json();
-          clearTimeout(timeoutId);
-
-          if (interData.error) throw new Error(interData.error.message);
-          const interText = interData.outputs?.[0]?.text || interData.output?.[0]?.content?.[0]?.text || JSON.stringify(interData);
-          output.value = interText;
-        } else {
-          clearTimeout(timeoutId);
-          const generatedText = data.candidates[0].content.parts[0].text;
-          output.value = generatedText;
+        if (!response.ok) {
+          const errJson = await response.json();
+          throw new Error(errJson.error?.message || `HTTP 오류 (${response.status})`);
         }
 
-        updateCharCount();
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        output.value = '';
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6).trim();
+              if (!jsonStr || jsonStr === '[DONE]') continue;
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const chunkText = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                if (chunkText) {
+                  output.value += chunkText;
+                  output.scrollTop = output.scrollHeight;
+                  updateCharCount();
+                }
+              } catch (e) {}
+            }
+          }
+        }
+
+        if (!output.value.trim()) {
+          throw new Error('응답 본문이 비어 있습니다. 다른 키워드로 다시 시도해 주세요.');
+        }
+
         showToast('블로그 원고 작성이 완료되었습니다!');
       } catch (err) {
-        if (err.name === 'AbortError') {
-          output.value = '응답 시간이 초과되었습니다. 잠시 후 다시 버튼을 눌러주세요.';
-        } else {
-          output.value = `오류 안내: ${err.message}\n\n우측 상단 [API 키 설정]에서 키가 올바른지 확인해 주세요.`;
-        }
+        output.value = `원고 생성 실패 안내:\n${err.message}\n\n[해결 방법]\n1. 우측 상단 [API 키 설정]에서 키 앞뒤 공백 없이 정확히 붙여넣었는지 확인해 주세요.\n2. Google AI Studio에서 새 API 키를 발급받아 교체해 보세요.`;
       } finally {
         btn.disabled = false;
         btn.innerHTML = '<span>AI로 블로그 본문 생성하기</span>';
@@ -455,117 +597,6 @@ ${activeRules}
     function clearResult() {
       document.getElementById('gen-output').value = '';
       updateCharCount();
-    }
-
-    function sendToWriter(channel, keyword, title, tip) {
-      const select = document.getElementById('gen-channel');
-      for (let i = 0; i < select.options.length; i++) {
-        if (select.options[i].value.includes(channel)) {
-          select.selectedIndex = i;
-          break;
-        }
-      }
-      document.getElementById('gen-keyword').value = keyword;
-      document.getElementById('gen-title').value = title;
-      document.getElementById('gen-point').value = tip;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      showToast('상단 AI 원고 생성기에 세팅되었습니다!');
-    }
-
-    function toggleAddCardForm() {
-      document.getElementById('add-card-form').classList.toggle('hidden');
-    }
-
-    function addNewCard() {
-      const channel = document.getElementById('new-channel').value;
-      const season = document.getElementById('new-season').value.trim() || '상시';
-      const keyword = document.getElementById('new-keyword').value.trim();
-      const title = document.getElementById('new-title').value.trim();
-      const tip = document.getElementById('new-tip').value.trim() || '핵심 정보 및 경험 위주 정리';
-
-      if (!keyword || !title) return showToast('키워드와 제목을 모두 입력해 주세요.');
-
-      keywordData.unshift({ channel, season, keyword, title, tip });
-      localStorage.setItem('custom_keyword_bank', JSON.stringify(keywordData));
-
-      document.getElementById('new-season').value = '';
-      document.getElementById('new-keyword').value = '';
-      document.getElementById('new-title').value = '';
-      document.getElementById('new-tip').value = '';
-      toggleAddCardForm();
-      renderCards();
-      showToast('새 키워드 카드가 등록되었습니다!');
-    }
-
-    function getBadgeStyle(ch) {
-      if (ch === '힐링파민') return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      if (ch === '띵동슉슉') return 'bg-purple-50 text-purple-700 border-purple-200';
-      if (ch === '한조각') return 'bg-blue-50 text-blue-700 border-blue-200';
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    }
-
-    function setFilter(channel) {
-      currentFilter = channel;
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        if (btn.innerText.includes(channel) || (channel === '전체' && btn.innerText.includes('전체'))) {
-          btn.classList.add('tab-active');
-          btn.classList.remove('bg-white', 'text-slate-700');
-        } else {
-          btn.classList.remove('tab-active');
-          btn.classList.add('bg-white', 'text-slate-700');
-        }
-      });
-      renderCards();
-    }
-
-    function renderCards() {
-      document.getElementById('total-badge').innerText = keywordData.length;
-      const container = document.getElementById('cards-container');
-      const searchQuery = document.getElementById('search-input').value.toLowerCase();
-
-      const filtered = keywordData.filter(item => {
-        const matchChannel = currentFilter === '전체' || item.channel === currentFilter;
-        const matchSearch = item.title.toLowerCase().includes(searchQuery) ||
-                            item.keyword.toLowerCase().includes(searchQuery) ||
-                            item.tip.toLowerCase().includes(searchQuery);
-        return matchChannel && matchSearch;
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-400 bg-white rounded-2xl border border-slate-200">검색 조건에 맞는 키워드가 없습니다.</div>`;
-        return;
-      }
-
-      container.innerHTML = filtered.map((item) => `
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 card-hover flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between gap-2 mb-3">
-              <span class="px-2.5 py-1 rounded-md text-xs font-bold border ${getBadgeStyle(item.channel)}">${item.channel}</span>
-              <span class="text-xs text-slate-400 font-medium">${item.season}</span>
-            </div>
-            <div class="text-xs font-semibold text-slate-500 mb-1">타겟 키워드: <span class="text-slate-800">${item.keyword}</span></div>
-            <h3 class="text-base font-bold text-slate-900 leading-snug mb-3">"${item.title}"</h3>
-            <p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl leading-relaxed mb-4">
-              <strong>글쓰기 포인트:</strong> ${item.tip}
-            </p>
-          </div>
-          <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
-            <button onclick="sendToWriter('${item.channel}', '${item.keyword.replace(/'/g, "\\'")}', '${item.title.replace(/'/g, "\\'")}', '${item.tip.replace(/'/g, "\\'")}')" class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition">
-              이 주제로 글쓰기
-            </button>
-            <button onclick="copyText('${item.title.replace(/'/g, "\\'")}')" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
-              제목복사
-            </button>
-            <a href="https://search.naver.com/search.naver?query=${encodeURIComponent(item.keyword)}" target="_blank" class="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
-              네이버 ↗
-            </a>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function copyText(text) {
-      navigator.clipboard.writeText(text).then(() => showToast('제목이 클립보드에 복사되었습니다!'));
     }
 
     function showToast(msg) {
