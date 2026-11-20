@@ -25,7 +25,7 @@
       </div>
       <div class="flex items-center gap-2 text-xs font-medium">
         <button onclick="toggleRuleModal()" class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 transition font-semibold">
-          ⚙️ AI 글쓰기 규칙 수정
+          ⚙️ 채널별 글쓰기 규칙 수정
         </button>
         <button onclick="toggleApiModal()" id="api-status-btn" class="px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 hover:bg-amber-100 transition font-semibold">
           🔑 API 키 설정
@@ -52,22 +52,31 @@
     </div>
   </div>
 
-  <!-- AI 글쓰기 규칙(프롬프트) 직접 수정 모달 -->
+  <!-- 채널별 AI 글쓰기 규칙(프롬프트) 직접 수정 모달 -->
   <div id="rule-modal" class="fixed inset-0 bg-slate-900/50 hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl">
       <div class="flex items-center justify-between mb-2">
-        <h3 class="text-lg font-bold text-slate-900">⚙️ 나만의 AI 글쓰기 규칙 편집</h3>
+        <h3 class="text-lg font-bold text-slate-900">⚙️ 채널별 AI 글쓰기 규칙 편집</h3>
         <button onclick="toggleRuleModal()" class="text-slate-400 hover:text-slate-600 text-xl">&times;</button>
       </div>
-      <p class="text-xs text-slate-600 mb-3">
-        AI가 글을 쓸 때 따르는 기본 지침입니다. 문체, 글자 수, 소제목 스타일, 하단 고정 문구 등을 자유롭게 수정해서 저장하세요.
+
+      <!-- 모달 내부 채널 선택 탭 -->
+      <div class="flex flex-wrap gap-1.5 my-3">
+        <button onclick="switchRuleTab('힐링파민')" id="rtab-힐링파민" class="rule-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white">힐링파민</button>
+        <button onclick="switchRuleTab('띵동슉슉')" id="rtab-띵동슉슉" class="rule-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">띵동슉슉</button>
+        <button onclick="switchRuleTab('한조각')" id="rtab-한조각" class="rule-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">한조각</button>
+        <button onclick="switchRuleTab('커넥트샵')" id="rtab-커넥트샵" class="rule-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">두루두루 커넥트샵</button>
+      </div>
+
+      <p class="text-xs text-slate-600 mb-2">
+        선택한 채널(<strong id="editing-channel-label" class="text-emerald-700">힐링파민</strong>)로 글을 쓸 때만 적용되는 전용 지침입니다. 채널별로 다르게 수정해 저장할 수 있습니다.
       </p>
       <textarea id="custom-rule-input" rows="13" class="w-full p-3.5 text-xs sm:text-sm leading-relaxed border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-emerald-500 font-mono"></textarea>
       <div class="flex items-center justify-between mt-4">
-        <button onclick="resetDefaultRule()" class="px-3 py-2 text-xs text-slate-500 hover:text-slate-800 underline">기본 규칙으로 초기화</button>
+        <button onclick="resetDefaultRule()" class="px-3 py-2 text-xs text-slate-500 hover:text-slate-800 underline">이 채널 기본 규칙으로 초기화</button>
         <div class="flex gap-2">
-          <button onclick="toggleRuleModal()" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200">취소</button>
-          <button onclick="saveCustomRule()" class="px-5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700">규칙 저장하기</button>
+          <button onclick="toggleRuleModal()" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl hover:bg-slate-200">닫기</button>
+          <button onclick="saveCustomRule()" class="px-5 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700">이 채널 규칙 저장하기</button>
         </div>
       </div>
     </div>
@@ -84,7 +93,7 @@
           <h2 class="text-lg font-bold">원클릭 블로그 원고 자동 생성기</h2>
         </div>
         <button onclick="toggleRuleModal()" class="text-xs bg-slate-800 hover:bg-slate-700 text-emerald-300 px-3 py-1.5 rounded-lg border border-slate-700 transition">
-          글쓰기 규칙 직접 수정하기 ↗
+          현재 채널 규칙 확인/수정 ↗
         </button>
       </div>
 
@@ -92,12 +101,15 @@
         <!-- 왼쪽: 입력 설정 -->
         <div class="lg:col-span-5 space-y-4">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">1. 발행할 블로그 채널 성격</label>
-            <select id="gen-channel" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 font-medium focus:outline-none focus:border-emerald-500">
-              <option value="힐링파민 (건강 · 제철식재료 · 혈당/혈관관리)">힐링파민 (건강 · 제철식재료 · 혈당/혈관관리)</option>
-              <option value="띵동슉슉 (연예 · 방송 · 화제 트렌드)">띵동슉슉 (연예 · 방송 · 화제 트렌드)</option>
-              <option value="한조각 (사회 · 생활경제 · 절약 꿀팁)">한조각 (사회 · 생활경제 · 절약 꿀팁)</option>
-              <option value="두루두루 커넥트샵 (살림 · 데스크 · 추천템 후기)">두루두루 커넥트샵 (살림 · 데스크 · 추천템 후기)</option>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-700">1. 발행할 블로그 채널 선택 (채널별 규칙 자동 적용)</label>
+              <span id="active-rule-badge" class="text-[11px] text-emerald-600 font-semibold">힐링파민 규칙 적용중</span>
+            </div>
+            <select id="gen-channel" onchange="onChannelChange()" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 font-medium focus:outline-none focus:border-emerald-500">
+              <option value="힐링파민">힐링파민 (건강 · 제철식재료 · 혈당/혈관관리)</option>
+              <option value="띵동슉슉">띵동슉슉 (연예 · 방송 · 화제 트렌드)</option>
+              <option value="한조각">한조각 (사회 · 생활경제 · 절약 꿀팁)</option>
+              <option value="커넥트샵">두루두루 커넥트샵 (살림 · 데스크 · 추천템 후기)</option>
             </select>
           </div>
 
@@ -107,7 +119,7 @@
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">3. 블로그 제목 (비워두면 AI가 후킹 제목 자동 추천)</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">3. 블로그 제목 (비워두면 AI가 채널 맞춤 제목 제안)</label>
             <input type="text" id="gen-title" placeholder="직접 입력하거나 아래 뉴스/레퍼런스에서 가져오세요" class="w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl font-semibold focus:outline-none focus:border-emerald-500">
           </div>
 
@@ -139,7 +151,7 @@
               <button onclick="clearResult()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs rounded-lg">지우기</button>
             </div>
           </div>
-          <textarea id="gen-output" rows="20" placeholder="왼쪽에서 정보를 입력한 뒤 [AI로 블로그 본문 생성하기] 버튼을 누르면 완성된 원고가 여기에 작성됩니다." class="w-full flex-1 p-4 text-sm leading-relaxed bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+          <textarea id="gen-output" rows="20" placeholder="왼쪽에서 채널을 선택하고 정보를 입력한 뒤 [AI로 블로그 본문 생성하기] 버튼을 누르면, 해당 채널 전용 규칙에 맞춰 원고가 작성됩니다." class="w-full flex-1 p-4 text-sm leading-relaxed bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 resize-none"></textarea>
         </div>
       </div>
     </section>
@@ -225,14 +237,40 @@
   </div>
 
   <script>
-    const DEFAULT_WRITING_RULES = `[작성 규칙]
-1. 문체: 모바일에서 술술 읽히는 친근하고 다정한 구어체(~해요, ~거든요 체)로 작성할 것.
-2. 분량: 공백 제외 약 1,200자 내외로 알차게 작성할 것.
-3. 문단 구성: 모바일 가독성을 위해 2~3문장마다 줄바꿈(빈 줄)을 넣어 시원하게 구성할 것.
-4. 소제목 규칙: 소제목 앞에는 절대 이모지(그림 기호)나 특수문자를 넣지 말고, 깔끔한 텍스트로만 작성할 것.
-5. 이미지 배치 가이드: 본문 흐름에 맞춰 [사진 1: ~한 모습] 형태로 이미지 6장이 들어갈 위치를 자연스럽게 표시할 것.
-6. 마무리 및 태그: 따뜻한 마무리 인사 후, 맨 마지막 줄에는 검색 유입을 돕는 핵심 해시태그 10개를 #태그 형식으로 나열할 것.
-7. 출력 형식: 불필요한 인사말이나 부연 설명 없이 바로 블로그 본문 내용만 출력할 것.`;
+    // 채널별 기본 작성 규칙 세트 (각각 독립적으로 수정·저장 가능)
+    const CHANNEL_DEFAULT_RULES = {
+      "힐링파민": `[힐링파민 - 건강·제철식재료 블로그 작성 규칙]
+1. 컨셉 & 문체: '맛집과 건강이 함께하는 삶' 슬로건에 맞춰, 40대 독자가 일상에서 바로 실천할 수 있도록 친근하고 다정한 구어체(~해요, ~거든요 체)로 작성할 것.
+2. 분량 및 호흡: 공백 제외 약 1,200자 내외, 모바일 가독성을 위해 2~3문장마다 반드시 빈 줄을 넣어 시원하게 구성할 것.
+3. 소제목 규칙: 소제목 앞에는 절대 이모지나 특수문자를 넣지 말고 깔끔한 텍스트로만 작성할 것.
+4. 본문 구성: 흔한 섭취 실수/오해 짚어주기 -> 핵심 영양 성분과 효능 -> 흡수율을 높이는 조리/섭취 팁 -> 섭취 시 주의사항 순서로 전개할 것.
+5. 이미지 가이드: 본문 흐름에 맞춰 [사진 1: ~한 모습] 형태로 인물이 없는 음식/식재료 클로즈업 사진 6장 위치를 표시할 것.
+6. 마무리 및 태그: 따뜻한 인사말 후 맨 마지막 줄에 검색 유입용 핵심 해시태그 10개를 #태그 형식으로 나열할 것.`,
+
+      "띵동슉슉": `[띵동슉슉 - 연예·방송·화제 트렌드 홈판 유입 작성 규칙]
+1. 컨셉 & 문체: 네이버 홈판(피드) 독자의 호기심을 자극해 끝까지 완독하게 만드는 스토리텔링형 문체(~했는데요, ~더라고요 체)로 작성할 것.
+2. 분량 및 호흡: 공백 제외 약 1,200자 내외, 2~3문장마다 빈 줄을 넣어 빠르게 훑어읽기 좋게 구성할 것.
+3. 소제목 규칙: 소제목 앞에는 절대 이모지나 특수문자를 넣지 말고 궁금증을 유발하는 깔끔한 텍스트로만 작성할 것.
+4. 본문 구성: 화제가 된 결정적 장면/발언 도입 -> 그동안 알려지지 않았던 배경 및 속사정 -> 대중과 시청자의 실제 반응 -> 향후 관전 포인트 순서로 전개할 것.
+5. 이미지 가이드: 본문 흐름에 맞춰 [사진 1: ~한 장면] 형태로 자료 이미지 6장 위치를 표시할 것.
+6. 마무리 및 태그: 독자의 댓글 참여를 유도하는 질문으로 마무리한 뒤, 맨 마지막 줄에 관련 화제 키워드 해시태그 10개를 #태그 형식으로 나열할 것.`,
+
+      "한조각": `[한조각 - 사회·생활경제·절약 꿀팁 블로그 작성 규칙]
+1. 컨셉 & 문체: 복잡한 경제·정책·사회 이슈를 1분 만에 핵심만 쏙 뽑아 쉽게 풀어주는 똑똑하고 다정한 이웃 언니/누나 같은 구어체로 작성할 것.
+2. 분량 및 호흡: 공백 제외 약 1,200자 내외, 2~3문장마다 빈 줄을 넣어 한눈에 들어오게 구성할 것.
+3. 소제목 규칙: 소제목 앞에는 절대 이모지나 특수문자를 넣지 말고 핵심 결론이 드러나는 텍스트로만 작성할 것.
+4. 본문 구성: 내 지갑과 직결되는 이슈 제기 -> 핵심 원인 및 변경 사항 팩트 요약 -> 지금 당장 챙겨야 할 실전 체크리스트 3가지 순서로 전개할 것.
+5. 이미지 가이드: 본문 흐름에 맞춰 [사진 1: ~한 자료] 형태로 이해를 돕는 이미지 6장 위치를 표시할 것.
+6. 마무리 및 태그: 실생활 적용을 응원하는 마무리 후, 맨 마지막 줄에 핵심 검색 해시태그 10개를 #태그 형식으로 나열할 것.`,
+
+      "커넥트샵": `[두루두루 커넥트샵 - 공감 스토리 & 추천템 전환 작성 규칙]
+1. 컨셉 & 문체: 물건을 억지로 팔려고 하지 말고, 40대 직장인·주부의 일상 속 뾰족한 불편함에 깊이 공감하며 자연스러운 이야기로 풀어낼 것. (억지 감동이나 과장 광고 멘트 금지)
+2. 분량 및 호흡: 공백 제외 약 1,200자 내외, 2~3문장마다 빈 줄을 넣어 술술 읽히게 구성할 것.
+3. 소제목 규칙: 소제목 앞에는 절대 이모지나 특수문자를 넣지 말고 경험담이 느껴지는 텍스트로만 작성할 것.
+4. 본문 구성: 누구나 겪는 일상의 뾰족한 불편함 묘사 -> 기존 해결법의 한계 -> 이 아이템을 직접 써보며 달라진 점 -> 솔직한 활용 팁 순서로 전개할 것.
+5. 이미지 가이드: 본문 흐름에 맞춰 [사진 1: ~한 사용 모습] 형태로 실제 사용감 위주의 이미지 6장 위치를 표시할 것.
+6. 마무리 및 태그: 담백한 추천 마무리 후, 맨 마지막 줄에 관련 상품·생활 키워드 해시태그 10개를 #태그 형식으로 나열할 것.`
+    };
 
     const defaultReferences = [
       {
@@ -250,10 +288,76 @@
     ];
 
     let referenceList = JSON.parse(localStorage.getItem('external_blog_refs')) || defaultReferences;
+    let currentEditingRuleChannel = '힐링파민';
 
     updateApiStatus();
     renderReferences();
+    onChannelChange();
 
+    // 채널 변경 시 배지 업데이트
+    function onChannelChange() {
+      const ch = document.getElementById('gen-channel').value;
+      const badge = document.getElementById('active-rule-badge');
+      const label = ch === '커넥트샵' ? '두루두루 커넥트샵' : ch;
+      badge.innerText = `${label} 전용 규칙 적용중`;
+    }
+
+    // 채널별 규칙 불러오기 헬퍼
+    function getChannelRule(channelKey) {
+      const savedMap = JSON.parse(localStorage.getItem('channel_writing_rules_map') || '{}');
+      return savedMap[channelKey] || CHANNEL_DEFAULT_RULES[channelKey] || CHANNEL_DEFAULT_RULES['힐링파민'];
+    }
+
+    // 규칙 수정 모달 열기/닫기
+    function toggleRuleModal() {
+      const modal = document.getElementById('rule-modal');
+      const isOpening = modal.classList.contains('hidden');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+
+      if (isOpening) {
+        const selectedChannel = document.getElementById('gen-channel').value;
+        switchRuleTab(selectedChannel);
+      }
+    }
+
+    // 모달 안에서 채널 탭 전환
+    function switchRuleTab(channelKey) {
+      currentEditingRuleChannel = channelKey;
+      document.getElementById('editing-channel-label').innerText = channelKey === '커넥트샵' ? '두루두루 커넥트샵' : channelKey;
+
+      document.querySelectorAll('.rule-tab-btn').forEach(btn => {
+        if (btn.id === `rtab-${channelKey}`) {
+          btn.className = 'rule-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white';
+        } else {
+          btn.className = 'rule-tab-btn px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+        }
+      });
+
+      document.getElementById('custom-rule-input').value = getChannelRule(channelKey);
+    }
+
+    function saveCustomRule() {
+      const ruleText = document.getElementById('custom-rule-input').value.trim();
+      if (!ruleText) return showToast('규칙 내용을 입력해 주세요.');
+
+      const savedMap = JSON.parse(localStorage.getItem('channel_writing_rules_map') || '{}');
+      savedMap[currentEditingRuleChannel] = ruleText;
+      localStorage.setItem('channel_writing_rules_map', JSON.stringify(savedMap));
+
+      showToast(`[${currentEditingRuleChannel}] 채널 전용 규칙이 저장되었습니다!`);
+    }
+
+    function resetDefaultRule() {
+      const savedMap = JSON.parse(localStorage.getItem('channel_writing_rules_map') || '{}');
+      delete savedMap[currentEditingRuleChannel];
+      localStorage.setItem('channel_writing_rules_map', JSON.stringify(savedMap));
+
+      document.getElementById('custom-rule-input').value = CHANNEL_DEFAULT_RULES[currentEditingRuleChannel];
+      showToast(`[${currentEditingRuleChannel}] 기본 규칙으로 초기화되었습니다.`);
+    }
+
+    // 허브 탭 전환
     function switchHubTab(tab) {
       const newsPanel = document.getElementById('hub-panel-news');
       const refPanel = document.getElementById('hub-panel-ref');
@@ -278,7 +382,7 @@
       fetchNewsArticles();
     }
 
-    async function fetchNewsArticles() {
+  async function fetchNewsArticles() {
       const query = document.getElementById('news-query').value.trim();
       if (!query) return showToast('검색할 뉴스 키워드를 입력해 주세요!');
 
@@ -293,28 +397,45 @@
       try {
         const res = await fetch(`/api/news?q=${encodeURIComponent(query)}`);
         const data = await res.json();
-        const items = data.items || [];
+        const items = (data.items || []).sort((a, b) => {
+          const timeA = a.pubDate ? new Date(a.pubDate).getTime() : 0;
+          const timeB = b.pubDate ? new Date(b.pubDate).getTime() : 0;
+          return timeB - timeA;
+        });
 
         if (items.length === 0) {
           container.innerHTML = `<div class="col-span-2 text-center py-10 text-slate-400 bg-slate-50 rounded-2xl border border-slate-200 text-sm">검색된 최신 기사가 없습니다. 다른 키워드로 검색해 보세요.</div>`;
           return;
         }
 
-        container.innerHTML = items.map((item) => {
+        container.innerHTML = items.map((item, idx) => {
           let dateStr = '최신 기사';
           if (item.pubDate) {
             const d = new Date(item.pubDate);
-            if (!isNaN(d)) dateStr = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+            if (!isNaN(d)) {
+              const yyyy = d.getFullYear();
+              const mm = String(d.getMonth() + 1).padStart(2, '0');
+              const dd = String(d.getDate()).padStart(2, '0');
+              const hh = String(d.getHours()).padStart(2, '0');
+              const min = String(d.getMinutes()).padStart(2, '0');
+              dateStr = `${yyyy}.${mm}.${dd} ${hh}:${min}`;
+            }
           }
 
           const safeTitle = item.title.replace(/'/g, "\\'").replace(/"/g, '&quot;');
           const safeSource = (item.source || 'NEWS').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+          const latestBadge = idx === 0
+            ? `<span class="px-2 py-0.5 rounded bg-rose-100 text-rose-700 text-[11px] font-bold">가장 최신</span>`
+            : '';
 
           return `
             <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5 card-hover flex flex-col justify-between">
               <div>
                 <div class="flex items-center justify-between gap-2 mb-2">
-                  <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[11px] font-bold">${item.source || 'NEWS'}</span>
+                  <div class="flex items-center gap-1.5">
+                    ${latestBadge}
+                    <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 text-[11px] font-bold">${item.source || 'NEWS'}</span>
+                  </div>
                   <span class="text-xs text-slate-400">${dateStr}</span>
                 </div>
                 <h3 class="text-sm font-bold text-slate-900 leading-snug mb-3">${item.title}</h3>
@@ -331,17 +452,16 @@
           `;
         }).join('');
       } catch (err) {
-        container.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-600 bg-slate-50 rounded-2xl border border-slate-200 text-xs px-4">뉴스 서버 연결 중 오류가 발생했습니다. 오른쪽 <strong>[네이버 뉴스 원문창 ↗]</strong> 버튼을 눌러 기사를 확인해 보세요.</div>`;
+        container.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-600 bg-slate-50 rounded-2xl border border-slate-200 text-xs px-4">뉴스 서버 연결 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>`;
       } finally {
         btn.disabled = false;
         btn.innerText = '뉴스 기사 수집하기';
       }
     }
-
     function useNewsForPost(keyword, newsTitle, sourceName) {
       document.getElementById('gen-keyword').value = keyword;
       document.getElementById('gen-title').value = '';
-      document.getElementById('gen-point').value = `[참고 언론사] ${sourceName}\n[참고 뉴스 제목] ${newsTitle}\n-> 위 최신 뉴스 이슈를 바탕으로 내 블로그 독자에게 유익하고 알기 쉽게 풀어서 글을 작성해 주세요.`;
+      document.getElementById('gen-point').value = `[참고 언론사] ${sourceName}\n[참고 뉴스 제목] ${newsTitle}\n-> 위 최신 뉴스 이슈를 바탕으로 선택한 채널 독자에게 알기 쉽게 풀어서 글을 작성해 주세요.`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
       showToast('뉴스 기사 제목이 상단 생성기 [4. 참고 뉴스/팩트]에 입력되었습니다!');
     }
@@ -407,28 +527,6 @@
       `).join('');
     }
 
-    function toggleRuleModal() {
-      const modal = document.getElementById('rule-modal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
-      const savedRule = localStorage.getItem('custom_writing_rules') || DEFAULT_WRITING_RULES;
-      document.getElementById('custom-rule-input').value = savedRule;
-    }
-
-    function saveCustomRule() {
-      const ruleText = document.getElementById('custom-rule-input').value.trim();
-      if (!ruleText) return showToast('규칙 내용을 입력해 주세요.');
-      localStorage.setItem('custom_writing_rules', ruleText);
-      toggleRuleModal();
-      showToast('나만의 AI 글쓰기 규칙이 저장되었습니다!');
-    }
-
-    function resetDefaultRule() {
-      localStorage.removeItem('custom_writing_rules');
-      document.getElementById('custom-rule-input').value = DEFAULT_WRITING_RULES;
-      showToast('기본 규칙으로 초기화되었습니다.');
-    }
-
     function toggleApiModal() {
       const modal = document.getElementById('api-modal');
       modal.classList.toggle('hidden');
@@ -454,7 +552,7 @@
       }
     }
 
-  // 사고(Thinking) 대기 시간을 끄고 gemini-3.8-flash 자동 재시도
+    // 선택된 채널의 전용 규칙을 적용하여 원고 생성 (60초 대기 & 자동 재시도)
     async function generateBlogPost() {
       const apiKey = localStorage.getItem('gemini_api_key');
       if (!apiKey) {
@@ -462,12 +560,12 @@
         return showToast('먼저 상단에서 무료 Gemini API 키를 등록해 주세요!');
       }
 
-      const channel = document.getElementById('gen-channel').value;
+      const channelKey = document.getElementById('gen-channel').value;
       const keyword = document.getElementById('gen-keyword').value.trim();
       const title = document.getElementById('gen-title').value.trim();
       const point = document.getElementById('gen-point').value.trim();
       const benchmark = document.getElementById('gen-benchmark').value.trim();
-      const activeRules = localStorage.getItem('custom_writing_rules') || DEFAULT_WRITING_RULES;
+      const channelRule = getChannelRule(channelKey);
 
       if (!title && !keyword && !point) {
         return showToast('키워드, 제목, 또는 참고할 뉴스 내용을 먼저 입력해 주세요!');
@@ -481,7 +579,7 @@
       let benchmarkInstruction = '';
       if (benchmark) {
         benchmarkInstruction = `\n[벤치마킹 구조 및 톤앤매너 복제 지침 - 최우선 적용]
-아래 제공된 [벤치마킹 원고]의 글 전개 구조, 도입부 후킹 방식, 문단 호흡, 소제목 흐름, 독자에게 말을 거는 톤앤매너를 철저히 분석해서 그 뼈대와 구조를 그대로 따라 새로운 주제(${keyword} / ${title})의 글을 작성하세요. (단, 내용은 새로운 주제에 맞게 완전히 새롭게 작성해야 합니다.)
+아래 제공된 [벤치마킹 원고]의 글 전개 구조, 도입부 후킹 방식, 문단 호흡, 소제목 흐름을 철저히 분석해서 그 뼈대를 따라 새로운 주제(${keyword} / ${title})의 글을 작성하세요. (단, 문체와 성격은 반드시 [${channelKey}] 채널 규칙을 따릅니다.)
 
 <벤치마킹 원고>
 ${benchmark}
@@ -490,26 +588,27 @@ ${benchmark}
 
       const titleInstruction = title
         ? `[블로그 제목] ${title}`
-        : `[블로그 제목] 미정 (본문 맨 첫 줄에 클릭을 부르는 매력적인 블로그 제목 1개를 먼저 제안한 뒤 한 줄 띄우고 본문을 시작하세요)`;
+        : `[블로그 제목] 미정 (본문 맨 첫 줄에 [${channelKey}] 채널 성격에 딱 맞는 후킹 블로그 제목 1개를 먼저 제안한 뒤 한 줄 띄우고 본문을 시작하세요)`;
 
-      const prompt = `당신은 네이버 블로그 인기 크리에이터입니다. 아래 입력 정보와 작성 규칙에 맞춰 블로그 본문을 작성해 주세요.
+      const prompt = `당신은 네이버 블로그 인기 크리에이터입니다. 아래 선택된 채널의 전용 작성 규칙과 입력 정보를 바탕으로 블로그 본문을 작성해 주세요.
 
-[채널 성격] ${channel}
+[발행 채널] ${channelKey}
 [메인 키워드] ${keyword}
 ${titleInstruction}
 [참고 뉴스 및 핵심 팩트] ${point}
 ${benchmarkInstruction}
-${activeRules}
+${channelRule}
 
-※ 중요 강조: 소제목 앞에는 어떠한 이모지나 그림 기호도 절대 사용하지 마세요.`;
+※ 공통 필수 규칙:
+- 소제목 앞에는 어떠한 이모지나 그림 기호도 절대 사용하지 마세요.
+- 불필요한 인사말이나 설명 없이 바로 결과 원고만 출력하세요.`;
 
       let lastError = '';
       let successText = '';
 
-      // gemini-3.8-flash로 최대 3회까지 자동 재시도 (1회당 60초 넉넉히 대기)
       for (let attempt = 1; attempt <= 3; attempt++) {
         output.value = attempt === 1
-          ? `gemini-3.8-flash 모델로 원고 작성 중입니다... (약 15~25초 소요)`
+          ? `[${channelKey}] 전용 규칙으로 원고 작성 중입니다... (약 15~25초 소요)`
           : `서버 접속량이 많아 자동으로 다시 시도 중입니다... (${attempt}/3회차)`;
 
         try {
@@ -533,7 +632,6 @@ ${activeRules}
           const data = await response.json();
           if (data.error) {
             lastError = data.error.message;
-            // 일시 혼잡(high demand)이면 3초 쉬고 재시도
             await new Promise(r => setTimeout(r, 3000));
             continue;
           }
@@ -552,7 +650,7 @@ ${activeRules}
       if (successText) {
         output.value = successText;
         updateCharCount();
-        showToast('블로그 원고 작성이 완료되었습니다!');
+        showToast(`[${channelKey}] 맞춤형 원고 작성이 완료되었습니다!`);
       } else {
         output.value = `원고 생성 실패 안내:\n${lastError}\n\n[안내]\n구글 무료 서버에 일시적으로 사용자가 몰렸습니다. 10초 뒤 버튼을 한 번 더 눌러주세요.`;
       }
