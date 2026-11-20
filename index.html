@@ -150,7 +150,7 @@
         <div>
           <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">02 / EXTERNAL RESEARCH & REFERENCE HUB</span>
           <h2 class="text-xl font-extrabold text-slate-900">실시간 뉴스 기사 수집 & 타 블로그 벤치마킹 창고</h2>
-          <p class="text-sm text-slate-500 mt-0.5">API 할당량 소모 없이 실시간 뉴스 기사를 무료로 수집하거나, 참고할 타 블로그 글 구조를 저장해 두고 꺼내 쓰세요.</p>
+          <p class="text-sm text-slate-500 mt-0.5">실시간 뉴스 기사를 무료로 수집하거나, 참고할 타 블로그 글 구조를 저장해 두고 꺼내 쓰세요.</p>
         </div>
 
         <div class="flex bg-slate-100 p-1 rounded-xl self-start">
@@ -163,7 +163,7 @@
         </div>
       </div>
 
-      <!-- [탭 1] 실시간 뉴스 기사 수집기 (무료 Google News XML 피드 직접 파싱) -->
+      <!-- [탭 1] 실시간 뉴스 기사 수집기 -->
       <div id="hub-panel-news" class="pt-6 space-y-5">
         <div class="flex flex-col sm:flex-row gap-2.5">
           <input type="text" id="news-query" onkeypress="if(event.key==='Enter') fetchNewsArticles()" placeholder="뉴스 검색어 입력 (예: 겨울 제철 음식 효능, 삼채, 연말정산, 유퀴즈 등)" class="flex-1 px-4 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:border-blue-500">
@@ -273,7 +273,12 @@
       }
     }
 
-async function fetchNewsArticles() {
+    function quickNewsSearch(q) {
+      document.getElementById('news-query').value = q;
+      fetchNewsArticles();
+    }
+
+    async function fetchNewsArticles() {
       const query = document.getElementById('news-query').value.trim();
       if (!query) return showToast('검색할 뉴스 키워드를 입력해 주세요!');
 
@@ -326,7 +331,7 @@ async function fetchNewsArticles() {
           `;
         }).join('');
       } catch (err) {
-        container.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-600 bg-slate-50 rounded-2xl border border-slate-200 text-xs px-4">뉴스 서버 연결 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.</div>`;
+        container.innerHTML = `<div class="col-span-2 text-center py-8 text-slate-600 bg-slate-50 rounded-2xl border border-slate-200 text-xs px-4">뉴스 서버 연결 중 오류가 발생했습니다. 오른쪽 <strong>[네이버 뉴스 원문창 ↗]</strong> 버튼을 눌러 기사를 확인해 보세요.</div>`;
       } finally {
         btn.disabled = false;
         btn.innerText = '뉴스 기사 수집하기';
@@ -449,7 +454,7 @@ async function fetchNewsArticles() {
       }
     }
 
-    // 일반 텍스트 생성 (무료 티어 할당량 정상 사용)
+    // 사고(Thinking) 대기 시간을 끄고 다중 모델 자동 폴백으로 즉시 생성
     async function generateBlogPost() {
       const apiKey = localStorage.getItem('gemini_api_key');
       if (!apiKey) {
@@ -472,7 +477,6 @@ async function fetchNewsArticles() {
       const output = document.getElementById('gen-output');
       btn.disabled = true;
       btn.innerHTML = '<span class="loading-dots">AI가 원고를 작성 중입니다...</span>';
-      output.value = '원고 작성을 시작했습니다. 잠시만 기다려 주세요...';
 
       let benchmarkInstruction = '';
       if (benchmark) {
@@ -499,37 +503,64 @@ ${activeRules}
 
 ※ 중요 강조: 소제목 앞에는 어떠한 이모지나 그림 기호도 절대 사용하지 마세요.`;
 
-      try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.7
-            }
-          })
-        });
+      // 혼잡 시 순차 전환할 모델 리스트
+      const candidateModels = [
+        'gemini-3.8-flash',
+        'gemini-3.8-flash-lite',
+        'gemini-2.0-flash'
+      ];
 
-        const data = await response.json();
-        if (data.error) {
-          throw new Error(data.error.message);
+      let lastError = '';
+      let successText = '';
+
+      for (const modelName of candidateModels) {
+        output.value = `[${modelName}] 모델로 원고 작성 중... (최대 15초 대기)`;
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 18000);
+
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.7,
+                thinkingConfig: { thinkingBudget: 0 }
+              }
+            })
+          });
+          clearTimeout(timeoutId);
+
+          const data = await response.json();
+          if (data.error) {
+            lastError = `${modelName}: ${data.error.message}`;
+            continue;
+          }
+
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (text.trim()) {
+            successText = text;
+            break;
+          }
+        } catch (err) {
+          lastError = err.name === 'AbortError'
+            ? `${modelName}: 응답 시간 초과 (다음 모델로 전환 시도)`
+            : `${modelName}: ${err.message}`;
         }
+      }
 
-        const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-        if (!generatedText) {
-          throw new Error('생성된 내용이 비어 있습니다. 다시 한 번 눌러주세요.');
-        }
-
-        output.value = generatedText;
+      if (successText) {
+        output.value = successText;
         updateCharCount();
         showToast('블로그 원고 작성이 완료되었습니다!');
-      } catch (err) {
-        output.value = `원고 생성 실패 안내:\n${err.message}\n\n[확인 사항]\n우측 상단 [API 키 설정]에서 키가 올바르게 저장되었는지 확인해 주세요.`;
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<span>AI로 블로그 본문 생성하기</span>';
+      } else {
+        output.value = `원고 생성 실패 안내:\n${lastError}\n\n[해결 방법]\n1. 잠시 후 다시 버튼을 눌러보세요.\n2. 우측 상단 [API 키 설정]에서 키가 올바른지 확인해 주세요.`;
       }
+
+      btn.disabled = false;
+      btn.innerHTML = '<span>AI로 블로그 본문 생성하기</span>';
     }
 
     document.getElementById('gen-output').addEventListener('input', updateCharCount);
