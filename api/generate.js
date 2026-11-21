@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     ? `[벤치마킹 구조·말투 복제 + 100% 신규 창작] 참고 테마(${benchmarkStyle.blogName})의 제목 공식(${benchmarkStyle.titlePattern}), 말투(${benchmarkStyle.tone}), 전개 구조(${benchmarkStyle.structure})만 모방하고 내용은 "${keyword}"에 맞춰 100% 새롭게 창작하세요. 기본 규칙: ${rule}`
     : `[주제 전용 기본 규칙] ${rule}`;
 
-  const prompt = `네이버 블로그 홈판 상위노출 에디터로서 아래 조건에 맞춰 순수 JSON만 빠르게 출력하세요.
+  const prompt = `네이버 블로그 홈판 상위노출 에디터로서 아래 조건에 맞춰 순수 JSON만 출력하세요.
 - 주제: ${topicName} (${topic})
 - 키워드/상품: ${keyword}
 - 추가 메모: ${memo || '없음'}
@@ -26,49 +26,35 @@ export default async function handler(req, res) {
   "imagePrompts": ["1컷 묘사(인물·텍스트 제외)", "2컷 묘사", "3컷 묘사", "4컷 묘사", "5컷 묘사", "6컷 묘사"]
 }`;
 
-  // 가장 빠른 초고속 모델 순서로 배치 + thinkingBudget: 0으로 대기시간 제거
-  const candidateModels = ['gemini-3.8-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash'];
-  let lastError = '';
-
-  for (const modelName of candidateModels) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 8500);
-
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.75,
-              thinkingConfig: { thinkingBudget: 0 }
-            }
-          })
-        }
-      );
-
-      clearTimeout(timer);
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        lastError = data.error?.message || `HTTP ${response.status}`;
-        continue;
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.75
+          }
+        })
       }
+    );
 
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return res.status(200).json(JSON.parse(jsonMatch[0]));
-      }
-    } catch (err) {
-      clearTimeout(timer);
-      lastError = err.name === 'AbortError' ? '응답 시간 초과' : err.message;
+    const data = await response.json();
+    if (!response.ok || data.error) {
+      const msg = data.error?.message || `HTTP ${response.status}`;
+      return res.status(500).json({ error: `Gemini 오류: ${msg}` });
     }
-  }
 
-  return res.status(500).json({ error: `원고 생성 오류: ${lastError}` });
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return res.status(500).json({ error: '원고 결과를 해석하지 못했습니다. 다시 시도해 주세요.' });
+    }
+
+    return res.status(200).json(JSON.parse(jsonMatch[0]));
+  } catch (err) {
+    return res.status(500).json({ error: `원고 생성 오류: ${err.message}` });
+  }
 }
