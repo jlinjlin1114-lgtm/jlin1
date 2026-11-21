@@ -8,9 +8,23 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Vercel 환경변수에 GEMINI_API_KEY가 설정되지 않았습니다.' });
   }
 
-  const benchmarkInstruction = benchmarkStyle
-    ? `\n[벤치마킹 블로그 스타일 복제 지침]\n- 제목 패턴: ${benchmarkStyle.titlePattern}\n- 문체 및 어미: ${benchmarkStyle.tone}\n- 본문 전개 구조: ${benchmarkStyle.structure}\n위 벤치마킹 블로그의 호흡과 후킹 감각을 반드시 반영하여 작성하세요.`
-    : '';
+  // 모드 분기: 벤치마킹 스타일 복제 모드 vs 주제 기본 규칙 모드
+  const styleModeInstruction = benchmarkStyle
+    ? `
+[작성 모드: 벤치마킹 블로그 구조·말투 복제 + 100% 신규 창작]
+아래 벤치마킹 블로그의 '문단 호흡, 전개 순서(뼈대), 어미와 말투, 제목 후킹 공식'만 똑같이 모방하세요.
+단, 벤치마킹 글의 실제 내용이나 문장을 절대 베끼지 말고, 입력된 새로운 키워드("${keyword}")에 맞춰 완전히 새로운 정보·사례·비유로 100% 새롭게 창작해야 합니다.
+- 참고 블로그 테마: ${benchmarkStyle.blogName}
+- 모방할 제목 패턴: ${benchmarkStyle.titlePattern}
+- 모방할 문체/어미: ${benchmarkStyle.tone}
+- 모방할 본문 전개 구조: ${benchmarkStyle.structure}
+- 함께 지킬 주제별 기본 가이드: ${rule}
+`
+    : `
+[작성 모드: 주제별 전용 기본 규칙 모드]
+벤치마킹 없이 아래 주제 전용 규칙을 최우선 기준으로 삼아 작성하세요.
+- 주제별 필수 규칙: ${rule}
+`;
 
   const prompt = `
 당신은 네이버 블로그 홈판(피드) 상위 노출 및 전환율 전문 에디터입니다.
@@ -19,11 +33,11 @@ export default async function handler(req, res) {
 - 선택 주제: ${topicName} (${topic})
 - 핵심 키워드/상품: ${keyword}
 - 추가 메모/포인트: ${memo || '없음'}
-- 주제별 필수 규칙: ${rule}
-${benchmarkInstruction}
+${styleModeInstruction}
 
 [출력 JSON 형식 - 반드시 아래 키 구조만 반환]
 {
+  "appliedMode": "${benchmarkStyle ? '벤치마킹 구조·말투 복제 창작 모드' : '주제 전용 기본 규칙 모드'}",
   "titles": ["홈판 클릭 유도 제목 1", "제목 2", "제목 3", "제목 4", "제목 5"],
   "body": "가독성 좋게 줄바꿈(\\n\\n)이 적용된 본문 전체 (건강 주제는 공백 제외 1,200자 내외 준수, 쇼핑 커넥트는 제휴 고지 문구 포함)",
   "hashtags": "#태그1 #태그2 #태그3 #태그4 #태그5 #태그6 #태그7 #태그8 #태그9 #태그10",
@@ -48,7 +62,7 @@ ${benchmarkInstruction}
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             responseMimeType: 'application/json',
-            temperature: 0.75
+            temperature: 0.8
           }
         })
       }
