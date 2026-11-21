@@ -4,25 +4,27 @@ export default async function handler(req, res) {
   const naverId = process.env.NAVER_CLIENT_ID;
   const naverSecret = process.env.NAVER_CLIENT_SECRET;
 
-  // 주제별 수집 소스 분기: health(블로그), drama(뉴스), economy(뉴스), shopping(블로그)
   const topicMeta = {
     health: {
       title: '건강 · 웰니스 실시간 트렌드',
       sourceType: 'blog',
       query: '건강 효능 식단 관리 후기',
-      keywordPrompt: '현재 대한민국 사람들이 네이버 검색창에 많이 검색하는 건강·영양·식재료·질병예방 관련 짧은 검색 키워드(2~3단어) TOP 10'
+      autoSeeds: ['겨울철 건강관리', '혈당 낮추는', '면역력 영양제', '기관지에 좋은', '피로회복 음식'],
+      keywordPrompt: '현재 대한민국 사람들이 네이버 검색창에 많이 검색하는 건강·영양·식재료·생활건강 관련 짧은 핵심 검색 키워드(2~10자) 10개'
     },
     drama: {
       title: '드라마 · 연예 실시간 트렌드',
       sourceType: 'news',
       query: '드라마 시청률 예능 연예 화제',
-      keywordPrompt: '현재 대한민국 사람들이 네이버 검색창에 많이 검색하는 방영 드라마 제목, 예능 프로그램, 화제 인물 검색 키워드 TOP 10'
+      autoSeeds: ['신작 드라마', '주말드라마', '예능 프로그램', '넷플릭스 순위', '화제성 1위'],
+      keywordPrompt: '현재 대한민국 사람들이 네이버 검색창에 많이 검색하는 방영 중인 드라마, 예능, 연예 화제 검색 키워드(2~10자) 10개'
     },
     economy: {
       title: '경제 · 가계금융 실시간 트렌드',
       sourceType: 'news',
       query: '경제 금리 부동산 세금 생활물가',
-      keywordPrompt: '현재 대한민국 사람들이 네이버 검색창에 많이 검색하는 경제, 금리, 연말정산, 지원금, 재테크 관련 짧은 검색 키워드 TOP 10'
+      autoSeeds: ['연말정산', '기준금리', '지원금 신청', 'ISA 계좌', '절세 방법'],
+      keywordPrompt: '현재 대한민국 사람들이 네이버 검색창에 많이 검색하는 경제, 금리, 연말정산, 지원금, 재테크 관련 짧은 검색 키워드(2~10자) 10개'
     },
     shopping: {
       title: '네이버 쇼핑 실시간 트렌드',
@@ -34,13 +36,20 @@ export default async function handler(req, res) {
         digital: '소형가전 IT기기 추천 후기',
         kids: '육아템 초등 준비물 추천 후기'
       }[subCategory] || '생활꿀템 추천 내돈내산 후기',
+      autoSeeds: {
+        all: ['겨울 가습기', '욕실 청소용품', '무선 청소기', '온열 찜질기', '생활 꿀템'],
+        living: ['초음파 가습기', '욕실 청소솔', '미니 온풍기', '주방 정리템', '극세사 이불'],
+        food: ['배도라지즙', '쌍화차', '단백질 쉐이크', '건강 간식', '제철 과일'],
+        digital: ['보조배터리', '핸디 청소기', '고속충전기', '노트북 거치대', '손난로'],
+        kids: ['어린이 유산균', '초등 문제집', '키즈 패딩', '독서대', '학습 타이머']
+      }[subCategory] || ['겨울 가습기', '욕실 청소용품', '생활 꿀템'],
       keywordPrompt: {
-        all: '현재 네이버 쇼핑에서 검색량이 급증하는 인기 생활·가전·식품 상품명 키워드 TOP 10',
-        living: '현재 네이버 쇼핑에서 검색량이 급증하는 리빙·청소·인테리어 상품명 키워드 TOP 10',
-        food: '현재 네이버 쇼핑에서 검색량이 급증하는 건강식품·간식·제철식품 상품명 키워드 TOP 10',
-        digital: '현재 네이버 쇼핑에서 검색량이 급증하는 소형가전·디지털기기 상품명 키워드 TOP 10',
-        kids: '현재 네이버 쇼핑에서 검색량이 급증하는 출산·육아·초등학생용품 상품명 키워드 TOP 10'
-      }[subCategory] || '현재 네이버 쇼핑에서 검색량이 급증하는 인기 상품명 키워드 TOP 10'
+        all: '현재 네이버 쇼핑에서 검색량이 급증하는 인기 생활·가전·식품 상품명 키워드 10개',
+        living: '현재 네이버 쇼핑에서 검색량이 급증하는 리빙·청소·인테리어 상품명 키워드 10개',
+        food: '현재 네이버 쇼핑에서 검색량이 급증하는 건강식품·간식·제철식품 상품명 키워드 10개',
+        digital: '현재 네이버 쇼핑에서 검색량이 급증하는 소형가전·디지털기기 상품명 키워드 10개',
+        kids: '현재 네이버 쇼핑에서 검색량이 급증하는 출산·육아·초등학생용품 상품명 키워드 10개'
+      }[subCategory] || '현재 네이버 쇼핑에서 검색량이 급증하는 인기 상품명 키워드 10개'
     }
   };
 
@@ -50,7 +59,7 @@ export default async function handler(req, res) {
   let topKeywords = [];
   let sourceLabel = isBlogMode ? '네이버 블로그 인기 피드' : '실시간 인기 뉴스 랭킹';
 
-  // [트랙 1] 인기글(건강·쇼핑은 블로그 / 드라마·경제는 뉴스) 독립 수집
+  // [트랙 1] 인기글 수집 (건강·쇼핑은 블로그 / 드라마·경제는 뉴스)
   if (naverId && naverSecret) {
     try {
       const apiPath = isBlogMode ? 'blog.json' : 'news.json';
@@ -110,37 +119,27 @@ export default async function handler(req, res) {
     } catch (e) {}
   }
 
-  // [트랙 2] 인기검색어 TOP 10은 인기글 제목과 겹치지 않게 별도로 실시간 검색 트렌드 조회
+  // [트랙 2] Gemini + Google 실시간 검색 (JSON 강제모드 제거하여 충돌 해결!)
   if (geminiKey) {
     try {
-      const avoidTitles = collectedArticles.map((a) => a.title).join(' / ');
       const prompt = `
-당신은 대한민국 실시간 검색어 트렌드 분석기입니다.
-Google 실시간 검색을 통해 오늘 기준 "${current.keywordPrompt}" 10개를 조사하세요.
+Google 실시간 검색을 활용해 2026년 11월 오늘 기준 "${current.keywordPrompt}"을 조사하세요.
+문장형 제목이 아니라 사용자가 검색창에 실제로 입력하는 짧은 핵심 키워드(2~10자 이내) 10개만 뽑아주세요.
 
-[중요 규칙]
-1. 문장형 글 제목이 아니라, 실제 사용자가 검색창에 입력하는 '짧은 핵심 검색 키워드(2~12자 이내 명사형)'로만 뽑으세요.
-2. 아래 수집된 인기글 제목을 그대로 잘라내지 말고, 실제 검색량 순위 관점에서 독립적인 인기 키워드를 뽑으세요.
-(참고 제외 문장: ${avoidTitles})
-${collectedArticles.length === 0 ? `3. 인기글 목록이 비어있으므로 ${isBlogMode ? '네이버 인기 블로그 글' : '실시간 인기 뉴스'} 8개도 함께 생성하세요.` : ''}
-
-반드시 아래 JSON 형식으로만 응답하세요:
+반드시 다른 설명 없이 아래 순수 JSON 형태로만 출력하세요:
 {
   "keywords": [
-    {"keyword": "검색어1", "badge": "급상승"},
-    {"keyword": "검색어2", "badge": "급상승"},
-    {"keyword": "검색어3", "badge": "인기"},
-    {"keyword": "검색어4", "badge": "인기"},
-    {"keyword": "검색어5", "badge": "인기"},
-    {"keyword": "검색어6", "badge": "화제"},
-    {"keyword": "검색어7", "badge": "화제"},
-    {"keyword": "검색어8", "badge": "상승"},
-    {"keyword": "검색어9", "badge": "상승"},
-    {"keyword": "검색어10", "badge": "추천"}
-  ]${collectedArticles.length === 0 ? `,
-  "articles": [
-    {"title": "인기글 제목", "source": "${isBlogMode ? '네이버 인기 블로그' : '실시간 인기 뉴스'}", "summary": "핵심 포인트 요약"}
-  ]` : ''}
+    {"keyword": "키워드1", "badge": "급상승"},
+    {"keyword": "키워드2", "badge": "급상승"},
+    {"keyword": "키워드3", "badge": "인기"},
+    {"keyword": "키워드4", "badge": "인기"},
+    {"keyword": "키워드5", "badge": "인기"},
+    {"keyword": "키워드6", "badge": "화제"},
+    {"keyword": "키워드7", "badge": "화제"},
+    {"keyword": "키워드8", "badge": "상승"},
+    {"keyword": "키워드9", "badge": "상승"},
+    {"keyword": "키워드10", "badge": "추천"}
+  ]
 }
 `;
 
@@ -152,23 +151,44 @@ ${collectedArticles.length === 0 ? `3. 인기글 목록이 비어있으므로 ${
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             tools: [{ googleSearch: {} }],
-            generationConfig: {
-              responseMimeType: 'application/json',
-              temperature: 0.85
-            }
+            generationConfig: { temperature: 0.75 }
           })
         }
       );
 
       const gData = await gRes.json();
-      const rawText = gData.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (rawText) {
-        const parsed = JSON.parse(rawText);
-        topKeywords = parsed.keywords || [];
-        if (collectedArticles.length === 0 && parsed.articles) {
-          collectedArticles = parsed.articles;
+      const rawText = gData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (Array.isArray(parsed.keywords) && parsed.keywords.length > 0) {
+          topKeywords = parsed.keywords.slice(0, 10);
         }
       }
+    } catch (e) {}
+  }
+
+  // [트랙 3] 안전망: 혹시 Gemini 검색이 지연될 경우 실시간 검색 자동완성 API에서 즉시 10개 수집
+  if (topKeywords.length === 0) {
+    try {
+      const collectedKw = new Set();
+      for (const seed of current.autoSeeds) {
+        if (collectedKw.size >= 10) break;
+        const acRes = await fetch(
+          `https://suggestqueries.google.com/complete/search?client=firefox&hl=ko&gl=kr&q=${encodeURIComponent(seed)}`
+        );
+        const acData = await acRes.json();
+        const suggestions = acData[1] || [];
+        for (const s of suggestions) {
+          if (s && s.length <= 16 && collectedKw.size < 10) {
+            collectedKw.add(s.trim());
+          }
+        }
+      }
+      topKeywords = [...collectedKw].map((kw, idx) => ({
+        keyword: kw,
+        badge: idx < 2 ? '급상승' : idx < 5 ? '인기' : '추천'
+      }));
     } catch (e) {}
   }
 
