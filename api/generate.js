@@ -9,77 +9,66 @@ export default async function handler(req, res) {
   }
 
   const styleModeInstruction = benchmarkStyle
-    ? `
-[작성 모드: 벤치마킹 블로그 구조·말투 복제 + 100% 신규 창작]
-아래 벤치마킹 블로그의 '문단 호흡, 전개 순서(뼈대), 어미와 말투, 제목 후킹 공식'만 똑같이 모방하세요.
-단, 벤치마킹 글의 실제 내용이나 문장을 절대 베끼지 말고, 입력된 새로운 키워드("${keyword}")에 맞춰 완전히 새로운 정보·사례·비유로 100% 새롭게 창작해야 합니다.
-- 참고 블로그 테마: ${benchmarkStyle.blogName}
-- 모방할 제목 패턴: ${benchmarkStyle.titlePattern}
-- 모방할 문체/어미: ${benchmarkStyle.tone}
-- 모방할 본문 전개 구조: ${benchmarkStyle.structure}
-- 함께 지킬 주제별 기본 가이드: ${rule}
-`
-    : `
-[작성 모드: 주제별 전용 기본 규칙 모드]
-벤치마킹 없이 아래 주제 전용 규칙을 최우선 기준으로 삼아 작성하세요.
-- 주제별 필수 규칙: ${rule}
-`;
+    ? `[벤치마킹 구조·말투 복제 + 100% 신규 창작] 참고 테마(${benchmarkStyle.blogName})의 제목 공식(${benchmarkStyle.titlePattern}), 말투(${benchmarkStyle.tone}), 전개 구조(${benchmarkStyle.structure})만 모방하고 내용은 "${keyword}"에 맞춰 100% 새롭게 창작하세요. 기본 규칙: ${rule}`
+    : `[주제 전용 기본 규칙] ${rule}`;
 
-  const prompt = `
-당신은 네이버 블로그 홈판(피드) 상위 노출 및 전환율 전문 에디터입니다.
-아래 조건에 맞춰 완벽한 블로그 포스팅 패키지를 순수 JSON 형식으로만 출력하세요.
+  const prompt = `네이버 블로그 홈판 상위노출 에디터로서 아래 조건에 맞춰 순수 JSON만 빠르게 출력하세요.
+- 주제: ${topicName} (${topic})
+- 키워드/상품: ${keyword}
+- 추가 메모: ${memo || '없음'}
+- 지침: ${styleModeInstruction}
 
-- 선택 주제: ${topicName} (${topic})
-- 핵심 키워드/상품: ${keyword}
-- 추가 메모/포인트: ${memo || '없음'}
-${styleModeInstruction}
-
-[출력 JSON 형식 - 반드시 아래 키 구조만 반환]
 {
   "appliedMode": "${benchmarkStyle ? '벤치마킹 구조·말투 복제 창작 모드' : '주제 전용 기본 규칙 모드'}",
-  "titles": ["홈판 클릭 유도 제목 1", "제목 2", "제목 3", "제목 4", "제목 5"],
-  "body": "가독성 좋게 줄바꿈(\\n\\n)이 적용된 본문 전체 (건강 주제는 공백 제외 1,200자 내외 준수, 쇼핑 커넥트는 제휴 고지 문구 포함)",
+  "titles": ["제목1", "제목2", "제목3", "제목4", "제목5"],
+  "body": "줄바꿈(\\n\\n) 적용된 본문 전체 (건강은 공백 제외 1,200자 내외, 쇼핑커넥트는 제휴 고지 포함)",
   "hashtags": "#태그1 #태그2 #태그3 #태그4 #태그5 #태그6 #태그7 #태그8 #태그9 #태그10",
-  "imagePrompts": [
-    "1단계 실사 이미지 묘사 (인물·텍스트·워터마크 절대 제외)",
-    "2단계 실사 이미지 묘사",
-    "3단계 실사 이미지 묘사",
-    "4단계 실사 이미지 묘사",
-    "5단계 실사 이미지 묘사",
-    "6단계 실사 이미지 묘사"
-  ]
-}
-`;
+  "imagePrompts": ["1컷 묘사(인물·텍스트 제외)", "2컷 묘사", "3컷 묘사", "4컷 묘사", "5컷 묘사", "6컷 묘사"]
+}`;
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.8
-          }
-        })
+  // 가장 빠른 초고속 모델 순서로 배치 + thinkingBudget: 0으로 대기시간 제거
+  const candidateModels = ['gemini-3.8-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash'];
+  let lastError = '';
+
+  for (const modelName of candidateModels) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8500);
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.75,
+              thinkingConfig: { thinkingBudget: 0 }
+            }
+          })
+        }
+      );
+
+      clearTimeout(timer);
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        lastError = data.error?.message || `HTTP ${response.status}`;
+        continue;
       }
-    );
 
-    const data = await response.json();
-
-    if (!response.ok || data.error) {
-      const apiErrMsg = data.error?.message || `HTTP ${response.status} 오류`;
-      return res.status(500).json({ error: `Gemini API 오류: ${apiErrMsg}` });
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return res.status(200).json(JSON.parse(jsonMatch[0]));
+      }
+    } catch (err) {
+      clearTimeout(timer);
+      lastError = err.name === 'AbortError' ? '응답 시간 초과' : err.message;
     }
-
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('AI 응답을 해석하지 못했습니다.');
-
-    return res.status(200).json(JSON.parse(jsonMatch[0]));
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
   }
+
+  return res.status(500).json({ error: `원고 생성 오류: ${lastError}` });
 }
