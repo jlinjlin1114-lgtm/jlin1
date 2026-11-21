@@ -10,7 +10,11 @@ export default async function handler(req, res) {
 
   let extractedText = manualText || '';
 
+  // 1단계: 네이버 블로그 본문 초고속 추출 (4초 타임아웃 제한)
   if (!extractedText && !imageBase64 && url) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4500);
+
     try {
       let targetUrl = url.trim();
       const headers = {
@@ -20,52 +24,62 @@ export default async function handler(req, res) {
       const blogHomeMatch = targetUrl.match(/blog\.naver\.com\/([a-zA-Z0-9_-]+)\/?$/);
       if (blogHomeMatch) {
         const blogId = blogHomeMatch[1];
-        const listRes = await fetch(`https://m.blog.naver.com/PostList.naver?blogId=${blogId}`, { headers });
+        const listRes = await fetch(`https://m.blog.naver.com/PostList.naver?blogId=${blogId}`, {
+          headers,
+          signal: controller.signal
+        });
         const listHtml = await listRes.text();
         const logNoMatch = listHtml.match(/logNo=(\d{10,})/) || listHtml.match(/"logNo"\s*:\s*"?(\d{10,})"?/);
-        if (logNoMatch) {
-          targetUrl = `https://m.blog.naver.com/${blogId}/${logNoMatch[1]}`;
-        } else {
-          targetUrl = `https://m.blog.naver.com/${blogId}`;
-        }
+        targetUrl = logNoMatch
+          ? `https://m.blog.naver.com/${blogId}/${logNoMatch[1]}`
+          : `https://m.blog.naver.com/${blogId}`;
       } else if (targetUrl.includes('blog.naver.com') && !targetUrl.includes('m.blog.naver.com')) {
         targetUrl = targetUrl.replace('blog.naver.com', 'm.blog.naver.com');
       }
 
-      const pageRes = await fetch(targetUrl, { headers });
+      const pageRes = await fetch(targetUrl, { headers, signal: controller.signal });
       const html = await pageRes.text();
+      clearTimeout(timeoutId);
 
-      const cleanText = html
+      // 스마트에디터 본문 영역(se-main-container) 우선 추출하여 속도와 정확도 극대화
+      const mainContainerMatch = html.match(/<div class="se-main-container">([\s\S]*?)<\/div>\s*<\/div>/);
+      const targetHtml = mainContainerMatch ? mainContainerMatch[1] : html;
+
+      const titleMatch = html.match(/<meta property="og:title" content="([^"]+)"/);
+      const postTitle = titleMatch ? `제목: ${titleMatch[1]}\n` : '';
+
+      const cleanText = targetHtml
         .replace(/<script[\s\S]*?<\/script>/gi, '')
         .replace(/<style[\s\S]*?<\/style>/gi, '')
         .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;|&quot;|&amp;|&#39;/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
 
-      extractedText = cleanText.slice(0, 4500);
+      extractedText = (postTitle + cleanText).slice(0, 2800);
     } catch (e) {
-      return res.status(400).json({ error: '블로그 페이지를 불러오지 못했습니다. 본문 붙여넣기나 캡처 이미지를 이용해 주세요.' });
+      clearTimeout(timeoutId);
+      return res.status(400).json({
+        error: '네이버 블로그 응답이 지연되어 불러오지 못했습니다. 아래 칸에 본문 텍스트나 캡처 이미지를 붙여넣어 주세요!'
+      });
     }
   }
 
   if ((!extractedText || extractedText.length < 30) && !imageBase64) {
     return res.status(400).json({
-      error: '블로그 본문을 읽어오지 못했습니다. 특정 게시글 URL을 넣거나 아래 칸에 본문·캡처 이미지를 붙여넣어 주세요!'
+      error: '블로그 본문을 읽어오지 못했습니다. 아래 칸에 본문이나 캡처 이미지를 붙여넣어 주세요!'
     });
   }
 
   const analyzePrompt = `
-제공된 블로그 게시글(텍스트 또는 캡처 이미지)을 정밀 분석하여, 이 작성자만의 글쓰기 스타일 DNA를 추출하세요.
-반드시 다른 설명 없이 순수 JSON 형식으로만 반환하세요.
+제공된 블로그 게시글의 글쓰기 스타일 DNA를 분석하여 순수 JSON 형식으로만 반환하세요.
+${extractedText ? `[분석 대상]\n${extractedText}` : '[분석 대상: 첨부된 블로그 캡처 이미지]'}
 
-${extractedText ? `[분석 대상 텍스트]\n${extractedText}` : '[분석 대상: 첨부된 블로그 캡처 이미지의 텍스트, 문단 호흡, 소제목 배치, 말투를 읽어 분석할 것]'}
-
-[반환 JSON 형식]
 {
-  "blogName": "블로그명 또는 글의 핵심 분위기 한줄 요약",
-  "titlePattern": "제목 작성 공식 (어미, 쉼표/물음표 활용, 호기심 유발 포인트 등)",
-  "tone": "문체 및 말투 습관 (예: 다정한 해요체, 짧은 2줄 호흡, 공감 유도형 추임새 등)",
-  "structure": "본문 전개 뼈대 (도입부 → 문제제기 → 해결/정보 → 마무리 순서와 소제목 스타일)"
+  "blogName": "블로그 핵심 분위기 한줄 요약",
+  "titlePattern": "제목 작성 공식 (어미, 쉼표/물음표, 후킹 요소)",
+  "tone": "문체 및 말투 습관 (어미, 문장 호흡)",
+  "structure": "본문 전개 뼈대 (도입 → 전개 → 마무리 순서)"
 }
 `;
 
@@ -79,35 +93,39 @@ ${extractedText ? `[분석 대상 텍스트]\n${extractedText}` : '[분석 대�
     });
   }
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts }],
-          generationConfig: { temperature: 0.4 }
-        })
+  // 사용 가능한 최신 모델 순차 자동 호출
+  const candidateModels = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+  let lastError = '';
+
+  for (const modelName of candidateModels) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts }],
+            generationConfig: { temperature: 0.4, maxOutputTokens: 800 }
+          })
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok || data.error) {
+        lastError = data.error?.message || `HTTP ${response.status}`;
+        continue; // 다음 모델로 즉시 전환
       }
-    );
 
-    const data = await response.json();
-
-    if (!response.ok || data.error) {
-      const apiErrMsg = data.error?.message || `HTTP ${response.status} 오류`;
-      return res.status(500).json({ error: `Gemini API 오류: ${apiErrMsg}` });
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return res.status(200).json(JSON.parse(jsonMatch[0]));
+      }
+    } catch (err) {
+      lastError = err.message;
     }
-
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return res.status(500).json({ error: 'AI 분석 결과를 해석하지 못했습니다. 다시 시도해 주세요.' });
-    }
-
-    const result = JSON.parse(jsonMatch[0]);
-    return res.status(200).json(result);
-  } catch (err) {
-    return res.status(500).json({ error: '스타일 분석 중 오류가 발생했습니다: ' + err.message });
   }
+
+  return res.status(500).json({ error: `AI 분석 실패: ${lastError}` });
 }
