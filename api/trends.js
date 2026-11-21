@@ -59,7 +59,6 @@ export default async function handler(req, res) {
   let topKeywords = [];
   let sourceLabel = isBlogMode ? '네이버 블로그 인기 피드' : '실시간 인기 뉴스 랭킹';
 
-  // [트랙 1] 인기글 수집 (건강·쇼핑은 블로그 / 드라마·경제는 뉴스)
   if (naverId && naverSecret) {
     try {
       const apiPath = isBlogMode ? 'blog.json' : 'news.json';
@@ -119,7 +118,6 @@ export default async function handler(req, res) {
     } catch (e) {}
   }
 
-  // [트랙 2] Gemini + Google 실시간 검색 (JSON 강제모드 제거하여 충돌 해결!)
   if (geminiKey) {
     try {
       const prompt = `
@@ -144,7 +142,7 @@ Google 실시간 검색을 활용해 2026년 11월 오늘 기준 "${current.keyw
 `;
 
       const gRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -168,7 +166,6 @@ Google 실시간 검색을 활용해 2026년 11월 오늘 기준 "${current.keyw
     } catch (e) {}
   }
 
-  // [트랙 3] 안전망: 혹시 Gemini 검색이 지연될 경우 실시간 검색 자동완성 API에서 즉시 10개 수집
   if (topKeywords.length === 0) {
     try {
       const collectedKw = new Set();
