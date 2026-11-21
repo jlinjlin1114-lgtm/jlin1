@@ -3,610 +3,423 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>블로그 홈판 & 쇼핑 커넥트 원고 스튜디오</title>
+  <title>심플 블로그 & 제미나이 원고 스튜디오</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <style>
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
     body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; color: #0f172a; }
-    .topic-card { transition: all 0.2s ease; }
-    .topic-card.active-health { border-color: #10b981; background-color: #ecfdf5; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.15); }
-    .topic-card.active-drama { border-color: #8b5cf6; background-color: #f5f3ff; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.15); }
-    .topic-card.active-economy { border-color: #2563eb; background-color: #eff6ff; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15); }
-    .topic-card.active-shopping { border-color: #f97316; background-color: #fff7ed; box-shadow: 0 4px 14px rgba(249, 115, 22, 0.15); }
+    .tab-active-health { border-color: #10b981; background-color: #ecfdf5; color: #065f46; }
+    .tab-active-drama { border-color: #8b5cf6; background-color: #f5f3ff; color: #5b21b6; }
+    .tab-active-economy { border-color: #2563eb; background-color: #eff6ff; color: #1e40af; }
+    .tab-active-shopping { border-color: #f97316; background-color: #fff7ed; color: #9a3412; }
   </style>
 </head>
 <body class="min-h-screen pb-16">
 
-  <!-- 상단 헤더 -->
+  <!-- 상단 네비게이션 -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg">B</div>
+        <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-base">B</div>
         <div>
-          <h1 class="font-bold text-slate-900 text-base sm:text-lg leading-tight">홈판 & 쇼핑 커넥트 스튜디오</h1>
-          <p class="text-xs text-slate-500">네이버 랭킹 글 · 실시간 인기검색 · 이미지 벤치마킹 복제</p>
+          <h1 class="font-bold text-slate-900 text-sm sm:text-base leading-tight">심플 블로그 & 제미나이 스튜디오</h1>
+          <p class="text-[11px] text-slate-500 hidden sm:block">벤치마킹 복제 창작 · 쇼핑 트렌드 · 제미나이 AI 채팅 · 최근 10개 보관</p>
         </div>
       </div>
+
       <div class="flex items-center gap-2">
-        <span id="modeStatusBadge" class="hidden sm:inline-block text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-          현재 모드: 주제 기본 규칙
-        </span>
-        <button onclick="resetAllWorkspace()" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center gap-1.5">
-          <i class="fa-solid fa-broom"></i>
-          <span>새 글 전체 초기화</span>
+        <button onclick="toggleHistoryDrawer()" class="text-xs font-bold px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i>
+          <span>최근 작성 (<span id="historyCountBadge">0</span>/10)</span>
+        </button>
+        <button onclick="toggleChatPanel()" class="text-xs font-bold px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white transition flex items-center gap-1.5 shadow-xs">
+          <i class="fa-solid fa-comments"></i>
+          <span>제미나이 채팅</span>
+        </button>
+        <button onclick="resetWorkspace()" title="입력 초기화" class="text-xs font-bold px-2.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition">
+          <i class="fa-solid fa-rotate-left"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
-
-    <!-- 1단계: 4대 주제 선택 -->
-    <section class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="font-bold text-slate-800 flex items-center gap-2">
-          <span class="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center">1</span>
-          발행 주제 및 전용 규칙 선택
-        </h2>
-        <button onclick="toggleRuleEditor()" class="text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition">
-          <i class="fa-solid fa-sliders mr-1"></i>상세 규칙 편집
-        </button>
+  <!-- 최근 10개 작성 목록 드로어 (토글) -->
+  <div id="historyDrawer" class="hidden bg-slate-900 text-white border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-xs font-bold flex items-center gap-1.5 text-amber-300">
+          <i class="fa-solid fa-folder-open"></i>최근 작성한 원고 보관함 (최대 10개 자동 저장)
+        </h3>
+        <button onclick="toggleHistoryDrawer()" class="text-xs text-slate-400 hover:text-white">닫기 ✕</button>
       </div>
+      <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-xs"></div>
+    </div>
+  </div>
 
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3" id="topicGrid">
-        <button onclick="selectTopic('health')" id="card-health" class="topic-card active-health text-left p-4 rounded-xl border-2 border-slate-200">
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="text-emerald-600 font-bold text-sm"><i class="fa-solid fa-leaf mr-1.5"></i>건강 · 웰니스</span>
-            <span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">1,200자 규칙</span>
-          </div>
-          <p class="text-xs text-slate-600 line-clamp-2">건강 랭킹 글·인기검색 연동 · 벤치마킹 구조·말투 복제 후 신규 창작</p>
-        </button>
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <button onclick="selectTopic('drama')" id="card-drama" class="topic-card text-left p-4 rounded-xl border-2 border-slate-200">
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="text-violet-600 font-bold text-sm"><i class="fa-solid fa-tv mr-1.5"></i>드라마 · 연예</span>
-            <span class="text-[11px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 font-semibold">연예랭킹</span>
-          </div>
-          <p class="text-xs text-slate-600 line-clamp-2">드라마·연예 랭킹 글·인기검색 연동 · 방영 반응 요약 및 스타일 복제</p>
-        </button>
+      <!-- 좌측 메인 작업 영역 (기본 8칸, 채팅 닫으면 12칸 확장) -->
+      <div id="mainWorkColumn" class="lg:col-span-8 space-y-5">
 
-        <button onclick="selectTopic('economy')" id="card-economy" class="topic-card text-left p-4 rounded-xl border-2 border-slate-200">
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="text-blue-600 font-bold text-sm"><i class="fa-solid fa-chart-line mr-1.5"></i>경제 · 이슈</span>
-            <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-semibold">경제랭킹</span>
-          </div>
-          <p class="text-xs text-slate-600 line-clamp-2">경제·금융 랭킹 글·인기검색 연동 · 3줄 요약·생활 대처법 및 스타일 복제</p>
-        </button>
-
-        <button onclick="selectTopic('shopping')" id="card-shopping" class="topic-card text-left p-4 rounded-xl border-2 border-slate-200">
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="text-orange-600 font-bold text-sm"><i class="fa-solid fa-bag-shopping mr-1.5"></i>쇼핑 커넥트</span>
-            <span class="text-[11px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 font-semibold">쇼핑 랭킹</span>
-          </div>
-          <p class="text-xs text-slate-600 line-clamp-2">네이버 쇼핑 인기검색 연동 · 일상 불편 공감 → 자연스러운 구매 전환</p>
-        </button>
-      </div>
-
-      <!-- 규칙 편집기 -->
-      <div id="ruleEditorBox" class="hidden mt-4 pt-4 border-t border-slate-100">
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">현재 선택된 주제의 기본 AI 글쓰기 규칙 (자동 저장)</label>
-        <textarea id="ruleTextarea" rows="3" onchange="saveCustomRule()" class="w-full text-xs p-3 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900"></textarea>
-      </div>
-    </section>
-
-    <!-- 전 주제 공통: 인기검색어 TOP 10 + 네이버 메인 인기 랭킹 글 패널 -->
-    <section id="trendPanel" class="rounded-2xl border p-5 shadow-sm transition-colors bg-emerald-50/70 border-emerald-200">
-      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-        <div>
-          <h3 id="trendPanelTitle" class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
-            <i class="fa-solid fa-fire text-rose-500"></i>
-            <span>건강 · 웰니스 실시간 트렌드</span>
-            <span id="trendSourceTag" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white text-slate-700 border border-slate-200">불러오는 중...</span>
-          </h3>
-          <p class="text-xs text-slate-600 mt-0.5">키워드나 랭킹 글을 클릭하면 아래 글감 입력창에 제목과 핵심 포인트가 자동으로 들어갑니다.</p>
-        </div>
-
-        <!-- 탭 전환: 인기검색어 TOP 10 vs 네이버 메인 랭킹 글 -->
-        <div class="flex flex-wrap items-center gap-2">
-          <div class="inline-flex rounded-xl bg-white p-1 border border-slate-200 shadow-xs">
-            <button id="tabBtnKeywords" onclick="switchTrendTab('keywords')" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition">
-              인기검색어 TOP 10
-            </button>
-            <button id="tabBtnArticles" onclick="switchTrendTab('articles')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
-              <i class="fa-solid fa-ranking-star text-amber-500 mr-1"></i>네이버 메인 랭킹 글
+        <!-- 1. 4대 카테고리 선택 바 -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold text-slate-500">1. 발행 카테고리 선택</span>
+            <button onclick="toggleRuleBox()" class="text-[11px] font-semibold text-slate-600 hover:text-slate-900 underline">
+              카테고리 기본 규칙 보기/수정
             </button>
           </div>
 
-          <button id="btnRefreshTrend" onclick="loadTrends(currentTopic)" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 border border-slate-200 shadow-xs">
-            <i class="fa-solid fa-rotate-right mr-1"></i>새로고침
-          </button>
-        </div>
-      </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <button onclick="selectTopic('health')" id="tab-health" class="p-3 rounded-xl border-2 font-bold text-xs sm:text-sm text-left transition tab-active-health">
+              <i class="fa-solid fa-leaf mr-1.5"></i>건강 · 웰니스
+              <span class="block text-[11px] font-normal opacity-80 mt-0.5">힐링파민 · 1,200자</span>
+            </button>
+            <button onclick="selectTopic('drama')" id="tab-drama" class="p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs sm:text-sm text-left transition">
+              <i class="fa-solid fa-tv mr-1.5"></i>드라마 · 연예
+              <span class="block text-[11px] font-normal opacity-75 mt-0.5">띵동슉슉 · 화제이슈</span>
+            </button>
+            <button onclick="selectTopic('economy')" id="tab-economy" class="p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs sm:text-sm text-left transition">
+              <i class="fa-solid fa-chart-line mr-1.5"></i>경제 · 이슈
+              <span class="block text-[11px] font-normal opacity-75 mt-0.5">한조각 · 가계/시사</span>
+            </button>
+            <button onclick="selectTopic('shopping')" id="tab-shopping" class="p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs sm:text-sm text-left transition">
+              <i class="fa-solid fa-bag-shopping mr-1.5"></i>쇼핑 커넥트
+              <span class="block text-[11px] font-normal opacity-75 mt-0.5">두루두루 · 상품전환</span>
+            </button>
+          </div>
 
-      <!-- 쇼핑 커넥트 전용 세부 카테고리 버튼 -->
-      <div id="shoppingSubCats" class="hidden flex flex-wrap items-center gap-1.5 mb-3">
-        <button onclick="loadTrends('shopping', 'all')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-orange-600 text-white" data-cat="all">전체</button>
-        <button onclick="loadTrends('shopping', 'living')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="living">생활/건강</button>
-        <button onclick="loadTrends('shopping', 'food')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="food">식품</button>
-        <button onclick="loadTrends('shopping', 'digital')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="digital">디지털/가전</button>
-        <button onclick="loadTrends('shopping', 'kids')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="kids">출산/육아</button>
-      </div>
+          <div id="ruleBox" class="hidden mt-3 pt-3 border-t border-slate-100">
+            <textarea id="ruleInput" rows="2" onchange="saveRule()" class="w-full text-xs p-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900"></textarea>
+          </div>
+        </section>
 
-      <!-- 탭 1: 인기검색어 리스트 -->
-      <div id="trendKeywordList" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
+        <!-- 2-A. [쇼핑 커넥트 선택 시에만 노출] 실시간 인기검색어 TOP 10 -->
+        <section id="shoppingTrendSection" class="hidden bg-orange-50/80 rounded-2xl border border-orange-200 p-4 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-orange-900"><i class="fa-solid fa-fire text-orange-600 mr-1"></i>쇼핑 커넥트 실시간 인기검색어 TOP 10</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-1">
+              <button onclick="loadShoppingTrends('all')" class="shop-cat px-2 py-1 rounded-lg text-[11px] font-bold bg-orange-600 text-white" data-cat="all">전체</button>
+              <button onclick="loadShoppingTrends('living')" class="shop-cat px-2 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 border border-orange-200" data-cat="living">생활/건강</button>
+              <button onclick="loadShoppingTrends('food')" class="shop-cat px-2 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 border border-orange-200" data-cat="food">식품</button>
+              <button onclick="loadShoppingTrends('digital')" class="shop-cat px-2 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 border border-orange-200" data-cat="digital">디지털</button>
+              <button onclick="loadShoppingTrends('kids')" class="shop-cat px-2 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 border border-orange-200" data-cat="kids">육아</button>
+            </div>
+          </div>
+          <div id="shoppingKeywordGrid" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
+        </section>
 
-      <!-- 탭 2: 네이버 메인 인기 랭킹 글 리스트 -->
-      <div id="rankingArticleList" class="hidden grid grid-cols-1 md:grid-cols-2 gap-2.5"></div>
-    </section>
-
-    <!-- 2단 그리드: 벤치마킹 분석 + 글감 입력 -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-      <!-- 좌측: 벤치마킹 블로그 DNA 추출기 (5칸) -->
-      <section class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
-        <div>
+        <!-- 2-B. [건강/드라마/경제 선택 시 노출] 벤치마킹 구조·말투·형태 복제 입력창 -->
+        <section id="benchmarkSection" class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
           <div class="flex items-center justify-between mb-2">
-            <h2 class="font-bold text-slate-800 flex items-center gap-2">
-              <span class="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center">2</span>
-              벤치마킹 구조·말투 복제 (선택)
-            </h2>
-            <label class="inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="useBenchmarkToggle" onchange="updateModeBadge()" class="sr-only peer" checked>
-              <div class="w-9 h-5 bg-slate-200 peer-checked:bg-indigo-600 rounded-full relative after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
-              <span class="ml-1.5 text-xs font-semibold text-slate-700">복제 적용</span>
-            </label>
+            <span class="text-xs font-bold text-slate-800">
+              <i class="fa-solid fa-clone text-indigo-600 mr-1.5"></i>2. 벤치마킹 글 넣기 (선택 — 본문 붙여넣기 또는 화면 캡처 Ctrl+V)
+            </span>
+            <button type="button" onclick="clearBenchmarkOnly()" class="text-[11px] text-slate-400 hover:text-rose-600 font-semibold">비우기</button>
           </div>
-          <p class="text-[11px] text-slate-500 mb-3">
-            URL, 본문 텍스트, 또는 <strong>캡처 이미지(Ctrl+V 붙여넣기 가능)</strong>를 넣으면 구조와 말투만 똑같이 따오고 내용은 100% 새롭게 창작합니다.
+          <p class="text-[11px] text-slate-500 mb-2.5">
+            참고할 블로그 글의 <strong>구조·말투·문단 형태</strong>만 그대로 따오고, 내용은 아래 입력한 새 키워드로 <strong>100% 새롭게 창작</strong>합니다.
           </p>
 
-          <div class="space-y-2.5">
-            <div class="flex gap-2">
-              <div class="relative flex-1">
-                <input type="text" id="benchmarkUrl" placeholder="벤치마킹할 네이버 블로그 글 URL 붙여넣기" class="w-full text-xs pl-3 pr-7 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600" />
-                <button type="button" onclick="clearField('benchmarkUrl')" title="URL 지우기" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-xs p-1">
-                  <i class="fa-solid fa-circle-xmark"></i>
-                </button>
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div class="sm:col-span-8">
+              <textarea id="benchmarkText" rows="3" placeholder="참고할 블로그 본문을 복사해 붙여넣거나, 캡처한 이미지를 여기에 대고 Ctrl+V로 바로 붙여넣으세요!" class="w-full text-xs p-3 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600"></textarea>
+            </div>
+            <div class="sm:col-span-4 flex flex-col justify-between bg-slate-50 rounded-xl border border-dashed border-slate-300 p-2.5 text-center">
+              <div id="bmImgEmpty" class="my-auto">
+                <label class="cursor-pointer inline-flex flex-col items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800">
+                  <i class="fa-regular fa-image text-lg"></i>
+                  <span>캡처 이미지 첨부</span>
+                  <span class="text-[10px] text-slate-400 font-normal">또는 Ctrl+V 붙여넣기</span>
+                  <input type="file" id="bmImageFile" accept="image/*" onchange="handleBmImage(event)" class="hidden" />
+                </label>
               </div>
-              <button onclick="analyzeBenchmark()" id="btnAnalyze" class="px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold whitespace-nowrap transition">
-                구조·말투 추출
+              <div id="bmImgPreviewBox" class="hidden space-y-1">
+                <img id="bmImgPreview" src="" alt="캡처" class="max-h-20 mx-auto rounded object-contain" />
+                <button type="button" onclick="clearBmImage()" class="text-[11px] text-rose-600 font-bold">이미지 제거</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. 새 원고 주제/키워드 입력 및 생성 버튼 -->
+        <section class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-800"><i class="fa-solid fa-pen-nib text-slate-900 mr-1.5"></i>3. 새롭게 작성할 주제 · 키워드 · 상품명</span>
+            <button type="button" onclick="clearTopicInputs()" class="text-[11px] text-slate-400 hover:text-rose-600 font-semibold">입력 지우기</button>
+          </div>
+
+          <input type="text" id="newKeyword" placeholder="예: 공복 혈당 낮추는 아침 식단 / 재혼 황후 드라마 결말 / 욕실 틈새 청소솔" class="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900" />
+          <textarea id="newMemo" rows="2" placeholder="꼭 들어갈 핵심 포인트나 내 경험 한 줄 (선택사항)" class="w-full text-xs p-3 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900"></textarea>
+
+          <button onclick="generateArticle()" id="btnGenerate" class="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>새 블로그 원고 생성하기</span>
+          </button>
+        </section>
+
+        <!-- 4. 작성된 원고 확인 및 편집 창 -->
+        <section id="editorSection" class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2">
+              <h2 class="font-bold text-slate-900 text-base">작성된 원고 확인 창</h2>
+              <span id="appliedModeTag" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">대기 중</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-800">
+                공백 제외: <span id="charNoSpace" class="text-indigo-600">0</span>자
+              </span>
+              <button onclick="copyFinalPost()" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+                <i class="fa-regular fa-copy mr-1"></i>전체 복사
               </button>
             </div>
-
-            <!-- 본문 텍스트 또는 캡처 이미지 직접 입력 영역 -->
-            <details open class="text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl border border-slate-200">
-              <summary class="cursor-pointer hover:text-slate-900 font-bold flex items-center justify-between">
-                <span><i class="fa-regular fa-image text-indigo-600 mr-1"></i>본문 텍스트 또는 캡처 이미지로 넣기</span>
-              </summary>
-              <div class="mt-2.5 space-y-2">
-                <div class="relative">
-                  <textarea id="manualBenchmarkText" rows="2" placeholder="본문 텍스트를 붙여넣거나, 캡처한 이미지를 이 칸에 대고 Ctrl+V로 바로 붙여넣으세요!" class="w-full p-2.5 pr-8 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-indigo-600"></textarea>
-                  <button type="button" onclick="clearField('manualBenchmarkText')" title="텍스트 지우기" class="absolute right-2 top-2 text-slate-400 hover:text-slate-700 text-xs p-1">
-                    <i class="fa-solid fa-circle-xmark"></i>
-                  </button>
-                </div>
-
-                <!-- 이미지 파일 선택 & 미리보기 -->
-                <div class="flex items-center justify-between gap-2">
-                  <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold text-xs transition">
-                    <i class="fa-solid fa-camera"></i>
-                    <span>캡처 이미지 선택</span>
-                    <input type="file" id="benchmarkImageInput" accept="image/*" onchange="handleImageFile(event)" class="hidden" />
-                  </label>
-                  <span id="imageFileName" class="text-[11px] text-slate-500 truncate flex-1">선택된 이미지 없음</span>
-                  <button type="button" id="btnRemoveImage" onclick="clearBenchmarkImage()" class="hidden text-[11px] text-rose-500 hover:text-rose-700 font-semibold">
-                    이미지 삭제
-                  </button>
-                </div>
-                <div id="imagePreviewWrap" class="hidden mt-2 relative rounded-lg overflow-hidden border border-slate-200 bg-white p-1">
-                  <img id="benchmarkImagePreview" src="" alt="벤치마킹 캡처 미리보기" class="max-h-36 mx-auto object-contain rounded" />
-                </div>
-              </div>
-            </details>
           </div>
 
-          <!-- 추출 결과 카드 -->
-          <div id="benchmarkResultBox" class="mt-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-indigo-700" id="bmBlogName"><i class="fa-solid fa-dna mr-1"></i>추출된 스타일 없음 (기본 주제 규칙 작동)</span>
-              <button onclick="clearBenchmark()" id="btnClearBm" class="hidden text-[11px] font-semibold text-rose-500 hover:text-rose-700 bg-rose-50 px-2 py-0.5 rounded">스타일 지우기</button>
+          <!-- 제목 5선 선택 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5">추천 제목 5선 (클릭하여 대표 제목 선택)</label>
+            <div id="titleList" class="space-y-1.5">
+              <p class="text-xs text-slate-400 py-2">원고를 생성하면 여기에 홈판 최적화 제목 5개가 표시됩니다.</p>
             </div>
-            <p class="text-slate-600"><strong class="text-slate-800">제목 공식:</strong> <span id="bmTitlePattern">-</span></p>
-            <p class="text-slate-600"><strong class="text-slate-800">문체/말투:</strong> <span id="bmTone">-</span></p>
-            <p class="text-slate-600"><strong class="text-slate-800">문단 구조:</strong> <span id="bmStructure">-</span></p>
+          </div>
+
+          <!-- 본문 확인/수정 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1.5">본문 내용 (직접 수정 가능)</label>
+            <textarea id="draftBody" rows="15" oninput="updateCharCount()" placeholder="생성된 블로그 본문이 이곳에 표시됩니다. 오른쪽 제미나이 채팅창에서 문체 수정이나 다듬기를 바로 요청할 수도 있습니다." class="w-full text-sm leading-relaxed p-4 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900"></textarea>
+          </div>
+
+          <!-- 해시태그 & 이미지 프롬프트 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="block text-xs font-bold text-slate-700 mb-1">추천 해시태그 10개</span>
+              <p id="draftHashtags" class="text-xs text-indigo-700 font-medium leading-relaxed">-</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="block text-xs font-bold text-slate-700 mb-1">본문 실사 이미지 프롬프트 6컷</span>
+              <div id="draftImages" class="space-y-1.5 text-[11px] text-slate-600 max-h-36 overflow-y-auto">-</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- 우측: 내 제미나이 AI 연동 실시간 채팅 패널 (4칸) -->
+      <aside id="chatPanel" class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[760px] sticky top-20">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-indigo-50/60 rounded-t-2xl">
+          <div>
+            <h2 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+              <i class="fa-solid fa-sparkles text-indigo-600"></i>내 제미나이 AI 채팅
+            </h2>
+            <p class="text-[11px] text-slate-500">원고 다듬기 · 제목 변형 · 아이디어 질문</p>
+          </div>
+          <button onclick="clearChatHistory()" class="text-[11px] text-slate-500 hover:text-rose-600 font-semibold">대화 비우기</button>
+        </div>
+
+        <!-- 채팅 메시지 영역 -->
+        <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+          <div class="p-3 rounded-2xl bg-slate-100 text-slate-700 leading-relaxed">
+            안녕하세요! 연결된 제미나이 AI입니다 😊<br/>
+            원고를 생성하신 뒤 <strong>"말투를 더 다정하게 바꿔줘"</strong>, <strong>"소제목 3개 달아줘"</strong>처럼 말씀해 주시면 현재 작성된 원고를 보고 바로 도와드릴게요!
           </div>
         </div>
-      </section>
 
-      <!-- 우측: 글감 입력 및 생성 실행 (7칸) -->
-      <section class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="font-bold text-slate-800 flex items-center gap-2">
-              <span class="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center">3</span>
-              오늘 작성할 새로운 키워드 · 상품 · 이슈 입력
-            </h2>
-            <button type="button" onclick="clearInputs()" class="text-xs font-semibold text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 px-2.5 py-1 rounded-lg transition flex items-center gap-1">
-              <i class="fa-solid fa-eraser"></i>
-              <span>입력 지우기</span>
+        <!-- 빠른 요청 칩 -->
+        <div class="px-3 pt-2 flex flex-wrap gap-1.5 border-t border-slate-100">
+          <button onclick="quickChat('현재 원고 제목을 클릭률 높게 5개만 더 뽑아줘')" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 font-medium">제목 5개 더 추천</button>
+          <button onclick="quickChat('현재 본문을 더 친근한 옆집 언니 말투로 다듬어줘')" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 font-medium">다정한 말투로 다듬기</button>
+          <button onclick="quickChat('도입부 3줄을 호기심이 확 생기게 고쳐줘')" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 font-medium">도입부 후킹 강화</button>
+        </div>
+
+        <!-- 채팅 입력창 -->
+        <div class="p-3">
+          <div class="flex gap-2">
+            <input type="text" id="chatInput" onkeydown="if(event.key==='Enter') sendChat()" placeholder="제미나이에게 질문 또는 수정 요청..." class="flex-1 text-xs px-3 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-indigo-600" />
+            <button onclick="sendChat()" id="btnSendChat" class="px-3.5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition">
+              전송
             </button>
           </div>
-
-          <div class="space-y-3">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">핵심 키워드, 랭킹 이슈 또는 상품명 *</label>
-              <div class="relative">
-                <input type="text" id="mainKeyword" placeholder="위 인기검색어나 네이버 메인 랭킹 글을 클릭하거나 직접 입력하세요" class="w-full text-sm pl-3.5 pr-9 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900" />
-                <button type="button" onclick="clearField('mainKeyword')" title="키워드 지우기" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-sm p-1">
-                  <i class="fa-solid fa-circle-xmark"></i>
-                </button>
-              </div>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">꼭 들어갈 포인트 / 참고 랭킹 글 요약 / 개인 경험 (선택)</label>
-              <div class="relative">
-                <textarea id="subMemo" rows="5" placeholder="예: 40대 워킹맘 시선에서 가족 건강 챙기는 일상 에피소드 추가, 과장 없이 담백하게" class="w-full text-xs p-3 pr-9 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900"></textarea>
-                <button type="button" onclick="clearField('subMemo')" title="메모 지우기" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700 text-sm p-1">
-                  <i class="fa-solid fa-circle-xmark"></i>
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
+      </aside>
 
-        <button onclick="generatePost()" id="btnGenerate" class="mt-4 w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-wand-magic-sparkles"></i>
-          <span>홈판 최적화 제목 5선 + 본문 + 이미지 프롬프트 생성</span>
-        </button>
-      </section>
     </div>
-
-    <!-- 결과 스튜디오 -->
-    <section id="resultSection" class="hidden bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
-      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4">
-        <div>
-          <div class="flex items-center gap-2">
-            <h2 class="font-bold text-slate-900 text-lg">생성 완료된 원고 패키지</h2>
-            <span id="resultAppliedMode" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200"></span>
-          </div>
-          <p class="text-xs text-slate-500 mt-0.5">제목 후보를 클릭하면 대표 제목으로 선택됩니다.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-800">
-            공백 제외: <span id="charCountNoSpace" class="text-indigo-600">0</span>자
-          </span>
-          <button onclick="copyAllContent()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
-            <i class="fa-regular fa-copy mr-1"></i>제목+본문+태그 전체 복사
-          </button>
-          <button onclick="clearResult()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs font-bold transition">
-            <i class="fa-solid fa-trash-can mr-1"></i>결과 닫기
-          </button>
-        </div>
-      </div>
-
-      <!-- 제목 5선 -->
-      <div>
-        <span class="block text-xs font-bold text-slate-700 mb-2">클릭을 부르는 홈판 제목 후보 5선</span>
-        <div id="titleCandidates" class="space-y-2"></div>
-      </div>
-
-      <!-- 본문 및 이미지 프롬프트 -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div class="lg:col-span-7 space-y-2">
-          <span class="text-xs font-bold text-slate-700 block">본문 원고 (직접 수정 가능)</span>
-          <textarea id="generatedBody" rows="16" oninput="updateCharCount()" class="w-full text-sm leading-relaxed p-4 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900"></textarea>
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
-            <span class="block text-xs font-bold text-slate-700 mb-1">추천 해시태그 10개</span>
-            <p id="generatedHashtags" class="text-xs text-indigo-700 font-medium"></p>
-          </div>
-        </div>
-
-        <div class="lg:col-span-5 space-y-2">
-          <span class="block text-xs font-bold text-slate-700">본문 삽입용 실사 이미지 프롬프트 6단계</span>
-          <div id="imagePromptList" class="space-y-2.5"></div>
-        </div>
-      </div>
-    </section>
-
   </main>
 
   <script>
-    const topicNames = {
-      health: '건강 · 웰니스',
-      drama: '드라마 · 연예',
-      economy: '경제 · 이슈',
-      shopping: '쇼핑 커넥트'
-    };
-
-    const panelStyles = {
-      health: 'rounded-2xl border p-5 shadow-sm transition-colors bg-emerald-50/70 border-emerald-200',
-      drama: 'rounded-2xl border p-5 shadow-sm transition-colors bg-violet-50/70 border-violet-200',
-      economy: 'rounded-2xl border p-5 shadow-sm transition-colors bg-blue-50/70 border-blue-200',
-      shopping: 'rounded-2xl border p-5 shadow-sm transition-colors bg-orange-50/70 border-orange-200'
-    };
-
-    const defaultRules = {
-      health: '공백 제외 1,200자 내외로 작성하세요. 문단은 2~3줄마다 짧게 끊어 가독성을 높이고, 글이 술술 읽히도록 친근하고 다정하게 말해주세요. 과장된 의학적 효능 단정은 피하고 일상 식단·생활 루틴 중심으로 풀어내며, 마지막엔 관련 건강 정보 연결 멘트와 핵심 해시태그 10개를 배치하세요.',
-      drama: '방영 직후 시청자 반응, 캐릭터 간 케미, 원작 설정 비교나 숨은 복선을 짚어주며 몰입감 있게 작성하세요. 도입부 첫 3줄에서 강력한 호기심을 자극하고, 핵심 관전 포인트를 정리하세요.',
-      economy: '복잡한 경제·정책·물가 이슈를 3줄로 먼저 쉽게 요약한 뒤, 우리 집 가계부와 생활비에 어떤 영향을 주는지 연결해 주세요. 마지막에는 당장 실천할 수 있는 현실적인 대처법을 정리하세요.',
-      shopping: '정보를 딱딱하게 나열하거나 억지로 팔려고 하지 말고, 일상 속 뾰족한 불편함에서 시작해 독자가 무릎을 탁 치며 공감하게 만드세요. 실제 써보면서 느낀 해결 포인트 3가지를 자연스럽게 녹이고, 본문 하단에 네이버 쇼핑 커넥트 활동으로 일정액의 수수료를 제공받을 수 있다는 고지 문구를 자연스럽게 포함하세요.'
+    const topicConfig = {
+      health: {
+        name: '건강 · 웰니스',
+        tabClass: 'tab-active-health',
+        rule: '공백 제외 1,200자 내외로 작성하세요. 문단은 2~3줄마다 짧게 끊어 가독성을 높이고, 글이 술술 읽히도록 친근하고 다정하게 말해주세요. 과장된 의학적 효능 단정은 피하고 일상 식단·생활 루틴 중심으로 풀어내며, 마지막엔 관련 건강 정보 연결 멘트와 핵심 해시태그 10개를 배치하세요.'
+      },
+      drama: {
+        name: '드라마 · 연예',
+        tabClass: 'tab-active-drama',
+        rule: '방영 직후 시청자 반응, 캐릭터 간 케미, 원작 설정 비교나 숨은 복선을 짚어주며 몰입감 있게 작성하세요. 도입부 첫 3줄에서 강력한 호기심을 자극하고 핵심 관전 포인트를 정리하세요.'
+      },
+      economy: {
+        name: '경제 · 이슈',
+        tabClass: 'tab-active-economy',
+        rule: '복잡한 경제·정책·물가 이슈를 3줄로 먼저 쉽게 요약한 뒤, 우리 집 가계부와 생활비에 어떤 영향을 주는지 연결해 주세요. 마지막에는 당장 실천할 수 있는 현실적인 대처법을 정리하세요.'
+      },
+      shopping: {
+        name: '쇼핑 커넥트',
+        tabClass: 'tab-active-shopping',
+        rule: '정보를 딱딱하게 나열하거나 억지로 팔려고 하지 말고, 일상 속 뾰족한 불편함에서 시작해 독자가 공감하게 만드세요. 실제 써보면서 느낀 해결 포인트 3가지를 자연스럽게 녹이고, 본문 하단에 네이버 쇼핑 커넥트 활동으로 일정액의 수수료를 제공받을 수 있다는 고지 문구를 포함하세요.'
+      }
     };
 
     let currentTopic = 'health';
-    let currentTrendTab = 'keywords';
-    let benchmarkData = null;
-    let benchmarkImageBase64 = null;
-    let benchmarkImageMime = null;
+    let bmImageBase64 = null;
+    let bmImageMime = null;
+    let currentTitles = [];
     let selectedTitle = '';
+    let chatHistory = [];
+    const HISTORY_KEY = 'jlin_blog_history_v1';
+    const RULE_KEY = 'jlin_blog_rules_v1';
 
-    // 클립보드 캡처 이미지(Ctrl+V) 붙여넣기 지원
+    // 클립보드 캡처 이미지(Ctrl+V) 붙여넣기
     window.addEventListener('paste', (e) => {
       const items = e.clipboardData?.items;
       if (!items) return;
       for (const item of items) {
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile();
-          if (file) {
-            processImageFile(file, '클립보드 캡처 이미지.png');
-          }
+          if (file) readBmImageFile(file);
           break;
         }
       }
     });
 
-    function handleImageFile(event) {
-      const file = event.target.files?.[0];
-      if (file) processImageFile(file, file.name);
+    function handleBmImage(e) {
+      const file = e.target.files?.[0];
+      if (file) readBmImageFile(file);
     }
 
-    function processImageFile(file, displayName) {
+    function readBmImageFile(file) {
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target.result;
-        benchmarkImageBase64 = dataUrl.split(',')[1];
-        benchmarkImageMime = file.type || 'image/png';
-
-        document.getElementById('benchmarkImagePreview').src = dataUrl;
-        document.getElementById('imagePreviewWrap').classList.remove('hidden');
-        document.getElementById('imageFileName').textContent = displayName;
-        document.getElementById('btnRemoveImage').classList.remove('hidden');
+      reader.onload = (ev) => {
+        const dataUrl = ev.target.result;
+        bmImageBase64 = dataUrl.split(',')[1];
+        bmImageMime = file.type || 'image/png';
+        document.getElementById('bmImgPreview').src = dataUrl;
+        document.getElementById('bmImgEmpty').classList.add('hidden');
+        document.getElementById('bmImgPreviewBox').classList.remove('hidden');
       };
       reader.readAsDataURL(file);
     }
 
-    function clearBenchmarkImage() {
-      benchmarkImageBase64 = null;
-      benchmarkImageMime = null;
-      document.getElementById('benchmarkImageInput').value = '';
-      document.getElementById('benchmarkImagePreview').src = '';
-      document.getElementById('imagePreviewWrap').classList.add('hidden');
-      document.getElementById('imageFileName').textContent = '선택된 이미지 없음';
-      document.getElementById('btnRemoveImage').classList.add('hidden');
+    function clearBmImage() {
+      bmImageBase64 = null;
+      bmImageMime = null;
+      document.getElementById('bmImageFile').value = '';
+      document.getElementById('bmImgPreview').src = '';
+      document.getElementById('bmImgPreviewBox').classList.add('hidden');
+      document.getElementById('bmImgEmpty').classList.remove('hidden');
     }
 
-    function clearField(id) {
-      const el = document.getElementById(id);
-      if (el) {
-        el.value = '';
-        el.focus();
-      }
+    function clearBenchmarkOnly() {
+      document.getElementById('benchmarkText').value = '';
+      clearBmImage();
     }
 
-    function clearInputs() {
-      document.getElementById('mainKeyword').value = '';
-      document.getElementById('subMemo').value = '';
-      document.getElementById('mainKeyword').focus();
+    function clearTopicInputs() {
+      document.getElementById('newKeyword').value = '';
+      document.getElementById('newMemo').value = '';
+      document.getElementById('newKeyword').focus();
     }
 
-    function clearResult() {
-      document.getElementById('resultSection').classList.add('hidden');
-      document.getElementById('titleCandidates').innerHTML = '';
-      document.getElementById('generatedBody').value = '';
-      document.getElementById('generatedHashtags').textContent = '';
-      document.getElementById('imagePromptList').innerHTML = '';
-      selectedTitle = '';
-    }
-
-    function resetAllWorkspace() {
-      clearBenchmark();
-      clearInputs();
-      clearResult();
-      document.getElementById('mainKeyword').focus();
+    function resetWorkspace() {
+      clearBenchmarkOnly();
+      clearTopicInputs();
     }
 
     function getRules() {
-      const saved = localStorage.getItem('blog_studio_rules_v3');
-      return saved ? JSON.parse(saved) : { ...defaultRules };
+      const saved = localStorage.getItem(RULE_KEY);
+      if (saved) return JSON.parse(saved);
+      return {
+        health: topicConfig.health.rule,
+        drama: topicConfig.drama.rule,
+        economy: topicConfig.economy.rule,
+        shopping: topicConfig.shopping.rule
+      };
+    }
+
+    function saveRule() {
+      const rules = getRules();
+      rules[currentTopic] = document.getElementById('ruleInput').value;
+      localStorage.setItem(RULE_KEY, JSON.stringify(rules));
+    }
+
+    function toggleRuleBox() {
+      document.getElementById('ruleBox').classList.toggle('hidden');
     }
 
     function selectTopic(topic) {
       currentTopic = topic;
-      ['health', 'drama', 'economy', 'shopping'].forEach(t => {
-        const card = document.getElementById(`card-${t}`);
-        card.className = 'topic-card text-left p-4 rounded-xl border-2 border-slate-200';
+      ['health', 'drama', 'economy', 'shopping'].forEach((t) => {
+        const btn = document.getElementById(`tab-${t}`);
+        btn.className = t === topic
+          ? `p-3 rounded-xl border-2 font-bold text-xs sm:text-sm text-left transition ${topicConfig[t].tabClass}`
+          : 'p-3 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold text-xs sm:text-sm text-left transition';
       });
-      document.getElementById(`card-${topic}`).classList.add(`active-${topic}`);
 
       const rules = getRules();
-      document.getElementById('ruleTextarea').value = rules[topic];
-      document.getElementById('trendPanel').className = panelStyles[topic];
+      document.getElementById('ruleInput').value = rules[topic];
 
-      const subCats = document.getElementById('shoppingSubCats');
+      const shopSec = document.getElementById('shoppingTrendSection');
+      const bmSec = document.getElementById('benchmarkSection');
+
       if (topic === 'shopping') {
-        subCats.classList.remove('hidden');
-        loadTrends('shopping', 'all');
+        shopSec.classList.remove('hidden');
+        bmSec.classList.add('hidden');
+        loadShoppingTrends('all');
       } else {
-        subCats.classList.add('hidden');
-        loadTrends(topic);
+        shopSec.classList.add('hidden');
+        bmSec.classList.remove('hidden');
       }
     }
 
-    function switchTrendTab(tab) {
-      currentTrendTab = tab;
-      const btnKw = document.getElementById('tabBtnKeywords');
-      const btnArt = document.getElementById('tabBtnArticles');
-      const listKw = document.getElementById('trendKeywordList');
-      const listArt = document.getElementById('rankingArticleList');
+    async function loadShoppingTrends(subCategory = 'all') {
+      document.querySelectorAll('.shop-cat').forEach((btn) => {
+        btn.className = btn.dataset.cat === subCategory
+          ? 'shop-cat px-2 py-1 rounded-lg text-[11px] font-bold bg-orange-600 text-white'
+          : 'shop-cat px-2 py-1 rounded-lg text-[11px] font-bold bg-white text-slate-700 border border-orange-200';
+      });
 
-      if (tab === 'keywords') {
-        btnKw.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition';
-        btnArt.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
-        listKw.classList.remove('hidden');
-        listArt.classList.add('hidden');
-      } else {
-        btnArt.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition';
-        btnKw.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
-        listArt.classList.remove('hidden');
-        listKw.classList.add('hidden');
-      }
-    }
-
-    function toggleRuleEditor() {
-      document.getElementById('ruleEditorBox').classList.toggle('hidden');
-    }
-
-    function saveCustomRule() {
-      const rules = getRules();
-      rules[currentTopic] = document.getElementById('ruleTextarea').value;
-      localStorage.setItem('blog_studio_rules_v3', JSON.stringify(rules));
-    }
-
-    async function loadTrends(topic, subCategory = 'all') {
-      if (topic === 'shopping') {
-        document.querySelectorAll('.cat-btn').forEach(btn => {
-          btn.className = btn.dataset.cat === subCategory
-            ? 'cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-orange-600 text-white'
-            : 'cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200';
-        });
-      }
-
-      const listEl = document.getElementById('trendKeywordList');
-      const artEl = document.getElementById('rankingArticleList');
-      listEl.innerHTML = '<p class="text-xs text-slate-600 col-span-full">데이터를 불러오는 중입니다...</p>';
-      artEl.innerHTML = '<p class="text-xs text-slate-600 col-span-full">네이버 메인 랭킹 글을 불러오는 중입니다...</p>';
+      const grid = document.getElementById('shoppingKeywordGrid');
+      grid.innerHTML = '<p class="text-xs text-orange-800 col-span-full">쇼핑 인기검색어를 불러오는 중...</p>';
 
       try {
-        const res = await fetch(`/api/trends?topic=${topic}&subCategory=${subCategory}`);
+        const res = await fetch(`/api/trends?subCategory=${subCategory}`);
         const data = await res.json();
-
-        document.querySelector('#trendPanelTitle span:nth-child(2)').textContent = data.panelTitle;
-        document.getElementById('trendSourceTag').textContent =
-          data.source === 'naver_live_api' ? '네이버 실시간 API 연동됨' : '실시간 인기 큐레이션';
-
-        listEl.innerHTML = data.items.map((item, i) => `
-          <button onclick="pickTrendKeyword('${item.keyword.replace(/'/g, "\\'")}')" class="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-slate-900 hover:text-white border border-slate-200/90 text-left transition group">
-            <span class="text-xs font-bold text-slate-800 group-hover:text-white truncate"><span class="text-indigo-600 group-hover:text-amber-300 mr-1.5">${i + 1}.</span>${item.keyword}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 group-hover:bg-slate-700 text-slate-700 group-hover:text-slate-200 font-semibold shrink-0">${item.badge}</span>
+        grid.innerHTML = (data.items || []).map((item, i) => `
+          <button onclick="document.getElementById('newKeyword').value='${item.keyword.replace(/'/g, "\\'")}'" class="flex items-center justify-between p-2 rounded-xl bg-white hover:bg-orange-600 hover:text-white border border-orange-200 text-left transition group">
+            <span class="text-xs font-bold truncate"><span class="text-orange-600 group-hover:text-amber-200 mr-1">${i + 1}.</span>${item.keyword}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 group-hover:bg-orange-700 text-orange-800 group-hover:text-white shrink-0">${item.badge}</span>
           </button>
         `).join('');
-
-        artEl.innerHTML = (data.rankingArticles || []).map((art, i) => `
-          <div onclick="pickRankingArticle('${art.title.replace(/'/g, "\\'")}', '${(art.summary || '').replace(/'/g, "\\'")}')" class="cursor-pointer p-3 rounded-xl bg-white hover:bg-slate-900 border border-slate-200 transition group flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between gap-2 mb-1">
-                <span class="text-[11px] font-bold text-amber-600 group-hover:text-amber-300">TOP ${i + 1} · ${art.source}</span>
-                ${art.link ? `<a href="${art.link}" target="_blank" onclick="event.stopPropagation()" class="text-[11px] text-slate-400 hover:text-indigo-400 underline">원문보기</a>` : ''}
-              </div>
-              <p class="text-xs font-bold text-slate-900 group-hover:text-white line-clamp-1">${art.title}</p>
-              <p class="text-[11px] text-slate-500 group-hover:text-slate-300 line-clamp-1 mt-0.5">${art.summary || ''}</p>
-            </div>
-          </div>
-        `).join('');
       } catch (e) {
-        listEl.innerHTML = '<p class="text-xs text-red-600 col-span-full">순위를 불러오지 못했습니다.</p>';
+        grid.innerHTML = '<p class="text-xs text-rose-600 col-span-full">인기검색어를 불러오지 못했습니다.</p>';
       }
     }
 
-    function pickTrendKeyword(kw) {
-      document.getElementById('mainKeyword').value = kw;
-    }
-
-    function pickRankingArticle(title, summary) {
-      document.getElementById('mainKeyword').value = title;
-      document.getElementById('subMemo').value = `[참고 랭킹 이슈 핵심]\n${summary}\n\n→ 위 이슈를 바탕으로 독자들이 궁금해할 핵심 포인트를 알기 쉽게 풀어서 작성해 주세요.`;
-    }
-
-    function updateModeBadge() {
-      const useBm = document.getElementById('useBenchmarkToggle').checked;
-      const badge = document.getElementById('modeStatusBadge');
-      if (useBm && benchmarkData) {
-        badge.textContent = '현재 모드: 벤치마킹 구조·말투 복제 창작';
-        badge.className = 'hidden sm:inline-block text-xs font-semibold px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200';
-      } else {
-        badge.textContent = '현재 모드: 주제 기본 규칙';
-        badge.className = 'hidden sm:inline-block text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200';
-      }
-    }
-
-    async function analyzeBenchmark() {
-      const url = document.getElementById('benchmarkUrl').value.trim();
-      const manualText = document.getElementById('manualBenchmarkText').value.trim();
-      if (!url && !manualText && !benchmarkImageBase64) {
-        alert('벤치마킹할 블로그 URL, 본문 텍스트, 또는 캡처 이미지를 넣어주세요.');
-        return;
-      }
-
-      const btn = document.getElementById('btnAnalyze');
-      btn.disabled = true;
-      btn.textContent = '분석 중...';
-
-      try {
-        const res = await fetch('/api/benchmark', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url,
-            manualText,
-            imageBase64: benchmarkImageBase64,
-            imageMimeType: benchmarkImageMime
-          })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || '분석 실패');
-
-        benchmarkData = data;
-        document.getElementById('bmBlogName').innerHTML = `<i class="fa-solid fa-dna mr-1"></i>복제 준비 완료: ${data.blogName}`;
-        document.getElementById('bmTitlePattern').textContent = data.titlePattern;
-        document.getElementById('bmTone').textContent = data.tone;
-        document.getElementById('bmStructure').textContent = data.structure;
-        document.getElementById('btnClearBm').classList.remove('hidden');
-        document.getElementById('useBenchmarkToggle').checked = true;
-        updateModeBadge();
-      } catch (err) {
-        alert(err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '구조·말투 추출';
-      }
-    }
-
-    function clearBenchmark() {
-      benchmarkData = null;
-      document.getElementById('benchmarkUrl').value = '';
-      document.getElementById('manualBenchmarkText').value = '';
-      clearBenchmarkImage();
-      document.getElementById('bmBlogName').innerHTML = '<i class="fa-solid fa-dna mr-1"></i>추출된 스타일 없음 (기본 주제 규칙 작동)';
-      document.getElementById('bmTitlePattern').textContent = '-';
-      document.getElementById('bmTone').textContent = '-';
-      document.getElementById('bmStructure').textContent = '-';
-      document.getElementById('btnClearBm').classList.add('hidden');
-      updateModeBadge();
-    }
-
-    async function generatePost() {
-      const keyword = document.getElementById('mainKeyword').value.trim();
+    async function generateArticle() {
+      const keyword = document.getElementById('newKeyword').value.trim();
       if (!keyword) {
-        alert('핵심 키워드, 랭킹 이슈 또는 상품명을 입력해 주세요!');
+        alert('새롭게 작성할 키워드, 주제 또는 상품명을 입력해 주세요!');
         return;
       }
 
       const btn = document.getElementById('btnGenerate');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>AI가 맞춤형 원고를 새로 창작하는 중입니다...</span>';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>제미나이 AI가 원고를 작성 중입니다...</span>';
 
-      const useBenchmark = document.getElementById('useBenchmarkToggle').checked;
       const rules = getRules();
+      const benchmarkText = currentTopic === 'shopping' ? '' : document.getElementById('benchmarkText').value.trim();
 
       try {
         const res = await fetch('/api/generate', {
@@ -614,78 +427,225 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             topic: currentTopic,
-            topicName: topicNames[currentTopic],
+            topicName: topicConfig[currentTopic].name,
             keyword,
-            memo: document.getElementById('subMemo').value.trim(),
+            memo: document.getElementById('newMemo').value.trim(),
             rule: rules[currentTopic],
-            benchmarkStyle: useBenchmark ? benchmarkData : null
+            benchmarkText,
+            benchmarkImageBase64: currentTopic === 'shopping' ? null : bmImageBase64,
+            benchmarkImageMime: currentTopic === 'shopping' ? null : bmImageMime
           })
         });
 
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || '원고 생성 오류');
+        if (!res.ok) throw new Error(data.error || '원고 생성 실패');
 
-        renderResult(data);
+        applyDraftToEditor(data);
+        saveToHistory({
+          id: Date.now(),
+          date: new Date().toLocaleString('ko-KR', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+          topic: currentTopic,
+          topicName: topicConfig[currentTopic].name,
+          keyword,
+          data
+        });
       } catch (err) {
         alert(err.message);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i><span>홈판 최적화 제목 5선 + 본문 + 이미지 프롬프트 생성</span>';
+        btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i><span>새 블로그 원고 생성하기</span>';
       }
     }
 
-    function renderResult(data) {
-      document.getElementById('resultSection').classList.remove('hidden');
-      document.getElementById('resultAppliedMode').textContent = data.appliedMode || '';
+    function applyDraftToEditor(data) {
+      document.getElementById('appliedModeTag').textContent = data.appliedMode || '작성 완료';
+      currentTitles = data.titles || [];
+      selectedTitle = currentTitles[0] || '';
 
-      selectedTitle = data.titles[0] || '';
-      const titleBox = document.getElementById('titleCandidates');
-      titleBox.innerHTML = data.titles.map((t, idx) => `
-        <button onclick="selectTitleCandidate(this, '${t.replace(/'/g, "\\'")}')" class="title-item w-full text-left p-3 rounded-xl border ${idx === 0 ? 'border-indigo-600 bg-indigo-50/70 font-bold text-indigo-950' : 'border-slate-200 hover:bg-slate-50 text-slate-800'} text-sm transition flex items-center justify-between">
-          <span><span class="text-xs font-bold text-indigo-600 mr-2">후보 ${idx + 1}</span>${t}</span>
-          <span class="text-[11px] text-slate-400">클릭하여 선택</span>
+      const titleList = document.getElementById('titleList');
+      titleList.innerHTML = currentTitles.map((t, i) => `
+        <button onclick="pickTitle(this, '${t.replace(/'/g, "\\'")}')" class="title-opt w-full text-left p-2.5 rounded-xl border ${i === 0 ? 'border-indigo-600 bg-indigo-50/70 font-bold text-indigo-950' : 'border-slate-200 hover:bg-slate-50 text-slate-800'} text-xs sm:text-sm transition flex items-center justify-between">
+          <span><strong class="text-indigo-600 mr-1.5">${i + 1}.</strong>${t}</span>
+          <span class="text-[10px] text-slate-400 shrink-0 ml-2">선택</span>
         </button>
       `).join('');
 
-      document.getElementById('generatedBody').value = data.body;
-      document.getElementById('generatedHashtags').textContent = data.hashtags;
+      document.getElementById('draftBody').value = data.body || '';
+      document.getElementById('draftHashtags').textContent = data.hashtags || '-';
       updateCharCount();
 
-      const imgBox = document.getElementById('imagePromptList');
-      imgBox.innerHTML = (data.imagePrompts || []).map((p, i) => `
-        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
-          <span class="font-bold text-slate-900 block mb-1">컷 ${i + 1}</span>
-          ${p}
-        </div>
-      `).join('');
+      const imgBox = document.getElementById('draftImages');
+      imgBox.innerHTML = (data.imagePrompts || []).map((p, i) => `<p><strong>${i + 1}컷:</strong> ${p}</p>`).join('') || '-';
 
-      document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('editorSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function selectTitleCandidate(el, title) {
+    function pickTitle(el, title) {
       selectedTitle = title;
-      document.querySelectorAll('.title-item').forEach(item => {
-        item.className = 'title-item w-full text-left p-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-800 text-sm transition flex items-center justify-between';
+      document.querySelectorAll('.title-opt').forEach((b) => {
+        b.className = 'title-opt w-full text-left p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs sm:text-sm transition flex items-center justify-between';
       });
-      el.className = 'title-item w-full text-left p-3 rounded-xl border border-indigo-600 bg-indigo-50/70 font-bold text-indigo-950 text-sm transition flex items-center justify-between';
+      el.className = 'title-opt w-full text-left p-2.5 rounded-xl border border-indigo-600 bg-indigo-50/70 font-bold text-indigo-950 text-xs sm:text-sm transition flex items-center justify-between';
     }
 
     function updateCharCount() {
-      const text = document.getElementById('generatedBody').value;
-      const noSpace = text.replace(/\s+/g, '').length;
-      document.getElementById('charCountNoSpace').textContent = noSpace.toLocaleString();
+      const text = document.getElementById('draftBody').value;
+      const count = text.replace(/\s+/g, '').length;
+      document.getElementById('charNoSpace').textContent = count.toLocaleString();
     }
 
-    function copyAllContent() {
-      const body = document.getElementById('generatedBody').value;
-      const tags = document.getElementById('generatedHashtags').textContent;
-      const fullText = `${selectedTitle}\n\n${body}\n\n${tags}`;
-      navigator.clipboard.writeText(fullText);
-      alert('선택한 제목, 본문, 해시태그가 클립보드에 복사되었습니다!');
+    function copyFinalPost() {
+      const body = document.getElementById('draftBody').value;
+      const tags = document.getElementById('draftHashtags').textContent;
+      if (!body.trim()) {
+        alert('복사할 원고가 없습니다.');
+        return;
+      }
+      navigator.clipboard.writeText(`${selectedTitle}\n\n${body}\n\n${tags}`);
+      alert('대표 제목, 본문, 해시태그가 복사되었습니다!');
     }
 
-    // 초기 실행
+    // 최근 10개 보관함 관리
+    function getHistory() {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function saveToHistory(entry) {
+      const list = getHistory();
+      list.unshift(entry);
+      const trimmed = list.slice(0, 10);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = getHistory();
+      document.getElementById('historyCountBadge').textContent = list.length;
+      const container = document.getElementById('historyList');
+
+      if (list.length === 0) {
+        container.innerHTML = '<p class="text-slate-400 col-span-full py-2">아직 저장된 원고가 없습니다. 원고를 생성하면 최근 10개까지 자동 보관됩니다.</p>';
+        return;
+      }
+
+      container.innerHTML = list.map((item, idx) => `
+        <div onclick="loadHistoryItem(${idx})" class="cursor-pointer p-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 transition flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1">
+              <span class="text-indigo-300 font-bold">${item.topicName}</span>
+              <span>${item.date}</span>
+            </div>
+            <p class="font-bold text-white line-clamp-1">${item.data.titles?.[0] || item.keyword}</p>
+          </div>
+          <div class="mt-2 flex items-center justify-between text-[10px]">
+            <span class="text-slate-400 truncate max-w-[130px]">#${item.keyword}</span>
+            <button onclick="deleteHistoryItem(event, ${idx})" class="text-rose-400 hover:text-rose-300">삭제</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function loadHistoryItem(idx) {
+      const list = getHistory();
+      const item = list[idx];
+      if (!item) return;
+      selectTopic(item.topic);
+      document.getElementById('newKeyword').value = item.keyword;
+      applyDraftToEditor(item.data);
+      document.getElementById('historyDrawer').classList.add('hidden');
+    }
+
+    function deleteHistoryItem(e, idx) {
+      e.stopPropagation();
+      const list = getHistory();
+      list.splice(idx, 1);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+      renderHistory();
+    }
+
+    function toggleHistoryDrawer() {
+      document.getElementById('historyDrawer').classList.toggle('hidden');
+    }
+
+    // 제미나이 AI 채팅 연동
+    function toggleChatPanel() {
+      const panel = document.getElementById('chatPanel');
+      const mainCol = document.getElementById('mainWorkColumn');
+      panel.classList.toggle('hidden');
+      mainCol.className = panel.classList.contains('hidden') ? 'lg:col-span-12 space-y-5' : 'lg:col-span-8 space-y-5';
+    }
+
+    function quickChat(text) {
+      document.getElementById('chatInput').value = text;
+      sendChat();
+    }
+
+    function clearChatHistory() {
+      chatHistory = [];
+      document.getElementById('chatMessages').innerHTML = `
+        <div class="p-3 rounded-2xl bg-slate-100 text-slate-700 leading-relaxed">
+          대화가 초기화되었습니다. 원고 수정이나 궁금한 점을 편하게 물어보세요!
+        </div>`;
+    }
+
+    async function sendChat() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      appendChatBubble('user', text);
+      chatHistory.push({ role: 'user', text });
+
+      const btn = document.getElementById('btnSendChat');
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      const currentDraft = document.getElementById('draftBody').value.trim()
+        ? { title: selectedTitle, body: document.getElementById('draftBody').value }
+        : null;
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: chatHistory.slice(-10),
+            currentDraft,
+            topicName: topicConfig[currentTopic].name
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || '채팅 오류');
+
+        chatHistory.push({ role: 'model', text: data.reply });
+        appendChatBubble('model', data.reply);
+      } catch (err) {
+        appendChatBubble('model', `오류가 발생했습니다: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '전송';
+      }
+    }
+
+    function appendChatBubble(role, text) {
+      const box = document.getElementById('chatMessages');
+      const div = document.createElement('div');
+      if (role === 'user') {
+        div.className = 'p-3 rounded-2xl bg-indigo-600 text-white ml-6 leading-relaxed whitespace-pre-wrap';
+        div.textContent = text;
+      } else {
+        div.className = 'p-3 rounded-2xl bg-slate-100 text-slate-800 mr-4 leading-relaxed whitespace-pre-wrap';
+        div.textContent = text;
+      }
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // 초기 세팅
     selectTopic('health');
+    renderHistory();
   </script>
 </body>
 </html>
