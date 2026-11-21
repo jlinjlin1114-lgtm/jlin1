@@ -8,7 +8,6 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Vercel 환경변수에 GEMINI_API_KEY가 설정되지 않았습니다.' });
   }
 
-  // 모드 분기: 벤치마킹 스타일 복제 모드 vs 주제 기본 규칙 모드
   const styleModeInstruction = benchmarkStyle
     ? `
 [작성 모드: 벤치마킹 블로그 구조·말투 복제 + 100% 신규 창작]
@@ -28,7 +27,7 @@ export default async function handler(req, res) {
 
   const prompt = `
 당신은 네이버 블로그 홈판(피드) 상위 노출 및 전환율 전문 에디터입니다.
-아래 조건에 맞춰 완벽한 블로그 포스팅 패키지를 JSON 형식으로만 출력하세요.
+아래 조건에 맞춰 완벽한 블로그 포스팅 패키지를 순수 JSON 형식으로만 출력하세요.
 
 - 선택 주제: ${topicName} (${topic})
 - 핵심 키워드/상품: ${keyword}
@@ -54,7 +53,7 @@ ${styleModeInstruction}
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -69,10 +68,17 @@ ${styleModeInstruction}
     );
 
     const data = await response.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('AI 응답이 비어있습니다.');
 
-    return res.status(200).json(JSON.parse(text));
+    if (!response.ok || data.error) {
+      const apiErrMsg = data.error?.message || `HTTP ${response.status} 오류`;
+      return res.status(500).json({ error: `Gemini API 오류: ${apiErrMsg}` });
+    }
+
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('AI 응답을 해석하지 못했습니다.');
+
+    return res.status(200).json(JSON.parse(jsonMatch[0]));
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
