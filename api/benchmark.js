@@ -10,10 +10,9 @@ export default async function handler(req, res) {
 
   let extractedText = manualText || '';
 
-  // 1단계: 네이버 블로그 본문 초고속 추출 (4초 타임아웃 제한)
   if (!extractedText && !imageBase64 && url) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4500);
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
 
     try {
       let targetUrl = url.trim();
@@ -41,10 +40,8 @@ export default async function handler(req, res) {
       const html = await pageRes.text();
       clearTimeout(timeoutId);
 
-      // 스마트에디터 본문 영역(se-main-container) 우선 추출하여 속도와 정확도 극대화
       const mainContainerMatch = html.match(/<div class="se-main-container">([\s\S]*?)<\/div>\s*<\/div>/);
       const targetHtml = mainContainerMatch ? mainContainerMatch[1] : html;
-
       const titleMatch = html.match(/<meta property="og:title" content="([^"]+)"/);
       const postTitle = titleMatch ? `제목: ${titleMatch[1]}\n` : '';
 
@@ -56,7 +53,7 @@ export default async function handler(req, res) {
         .replace(/\s+/g, ' ')
         .trim();
 
-      extractedText = (postTitle + cleanText).slice(0, 2800);
+      extractedText = (postTitle + cleanText).slice(0, 1800);
     } catch (e) {
       clearTimeout(timeoutId);
       return res.status(400).json({
@@ -65,23 +62,15 @@ export default async function handler(req, res) {
     }
   }
 
-  if ((!extractedText || extractedText.length < 30) && !imageBase64) {
+  if ((!extractedText || extractedText.length < 25) && !imageBase64) {
     return res.status(400).json({
       error: '블로그 본문을 읽어오지 못했습니다. 아래 칸에 본문이나 캡처 이미지를 붙여넣어 주세요!'
     });
   }
 
-  const analyzePrompt = `
-제공된 블로그 게시글의 글쓰기 스타일 DNA를 분석하여 순수 JSON 형식으로만 반환하세요.
-${extractedText ? `[분석 대상]\n${extractedText}` : '[분석 대상: 첨부된 블로그 캡처 이미지]'}
-
-{
-  "blogName": "블로그 핵심 분위기 한줄 요약",
-  "titlePattern": "제목 작성 공식 (어미, 쉼표/물음표, 후킹 요소)",
-  "tone": "문체 및 말투 습관 (어미, 문장 호흡)",
-  "structure": "본문 전개 뼈대 (도입 → 전개 → 마무리 순서)"
-}
-`;
+  const analyzePrompt = `제공된 블로그 글의 스타일 DNA를 짧고 핵심만 분석해 순수 JSON만 출력하세요.
+${extractedText ? `[대상]\n${extractedText}` : '[대상: 첨부 이미지]'}
+{"blogName":"블로그 분위기 요약","titlePattern":"제목 공식","tone":"문체/말투 습관","structure":"본문 전개 구조"}`;
 
   const parts = [{ text: analyzePrompt }];
   if (imageBase64) {
@@ -93,39 +82,36 @@ ${extractedText ? `[분석 대상]\n${extractedText}` : '[분석 대상: 첨부�
     });
   }
 
-  // 사용 가능한 최신 모델 순차 자동 호출
-  const candidateModels = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'];
-  let lastError = '';
-
-  for (const modelName of candidateModels) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts }],
-            generationConfig: { temperature: 0.4, maxOutputTokens: 800 }
-          })
-        }
-      );
-
-      const data = await response.json();
-      if (!response.ok || data.error) {
-        lastError = data.error?.message || `HTTP ${response.status}`;
-        continue; // 다음 모델로 즉시 전환
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 450
+          }
+        })
       }
+    );
 
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return res.status(200).json(JSON.parse(jsonMatch[0]));
-      }
-    } catch (err) {
-      lastError = err.message;
+    const data = await response.json();
+    if (!response.ok || data.error) {
+      const msg = data.error?.message || `HTTP ${response.status}`;
+      return res.status(500).json({ error: `Gemini 오류: ${msg}` });
     }
-  }
 
-  return res.status(500).json({ error: `AI 분석 실패: ${lastError}` });
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      return res.status(500).json({ error: '분석 결과를 해석하지 못했습니다. 다시 시도해 주세요.' });
+    }
+
+    return res.status(200).json(JSON.parse(jsonMatch[0]));
+  } catch (err) {
+    return res.status(500).json({ error: `AI 분석 실패: ${err.message}` });
+  }
 }
