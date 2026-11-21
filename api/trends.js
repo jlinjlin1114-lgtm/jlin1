@@ -7,25 +7,25 @@ export default async function handler(req, res) {
   // 주제별 수집 소스 분기: health(블로그), drama(뉴스), economy(뉴스), shopping(블로그)
   const topicMeta = {
     health: {
-      title: '건강 · 웰니스 인기 블로그 트렌드',
+      title: '건강 · 웰니스 실시간 트렌드',
       sourceType: 'blog',
       query: '건강 효능 식단 관리 후기',
-      promptTopic: '네이버 블로그 건강·영양·식재료·생활건강 분야 인기 유입글'
+      keywordPrompt: '현재 대한민국 사람들이 네이버 검색창에 많이 검색하는 건강·영양·식재료·질병예방 관련 짧은 검색 키워드(2~3단어) TOP 10'
     },
     drama: {
-      title: '드라마 · 연예 실시간 인기 뉴스',
+      title: '드라마 · 연예 실시간 트렌드',
       sourceType: 'news',
       query: '드라마 시청률 예능 연예 화제',
-      promptTopic: '대한민국 실시간 인기 연예·드라마·방송 뉴스 랭킹'
+      keywordPrompt: '현재 대한민국 사람들이 네이버 검색창에 많이 검색하는 방영 드라마 제목, 예능 프로그램, 화제 인물 검색 키워드 TOP 10'
     },
     economy: {
-      title: '경제 · 가계금융 실시간 인기 뉴스',
+      title: '경제 · 가계금융 실시간 트렌드',
       sourceType: 'news',
       query: '경제 금리 부동산 세금 생활물가',
-      promptTopic: '대한민국 실시간 인기 경제·금융·생활물가·정책 뉴스 랭킹'
+      keywordPrompt: '현재 대한민국 사람들이 네이버 검색창에 많이 검색하는 경제, 금리, 연말정산, 지원금, 재테크 관련 짧은 검색 키워드 TOP 10'
     },
     shopping: {
-      title: '네이버 쇼핑 인기 후기·추천 블로그',
+      title: '네이버 쇼핑 실시간 트렌드',
       sourceType: 'blog',
       query: {
         all: '생활꿀템 추천 내돈내산 후기',
@@ -34,22 +34,23 @@ export default async function handler(req, res) {
         digital: '소형가전 IT기기 추천 후기',
         kids: '육아템 초등 준비물 추천 후기'
       }[subCategory] || '생활꿀템 추천 내돈내산 후기',
-      promptTopic: {
-        all: '네이버 블로그 쇼핑·생활꿀템 내돈내산 인기 후기글',
-        living: '네이버 블로그 살림·리빙·청소용품 인기 추천글',
-        food: '네이버 블로그 식품·건강식품·제철 먹거리 인기 추천글',
-        digital: '네이버 블로그 소형가전·디지털기기 인기 사용후기',
-        kids: '네이버 블로그 출산·육아·초등학생용품 인기 추천글'
-      }[subCategory] || '네이버 블로그 쇼핑 내돈내산 인기 후기글'
+      keywordPrompt: {
+        all: '현재 네이버 쇼핑에서 검색량이 급증하는 인기 생활·가전·식품 상품명 키워드 TOP 10',
+        living: '현재 네이버 쇼핑에서 검색량이 급증하는 리빙·청소·인테리어 상품명 키워드 TOP 10',
+        food: '현재 네이버 쇼핑에서 검색량이 급증하는 건강식품·간식·제철식품 상품명 키워드 TOP 10',
+        digital: '현재 네이버 쇼핑에서 검색량이 급증하는 소형가전·디지털기기 상품명 키워드 TOP 10',
+        kids: '현재 네이버 쇼핑에서 검색량이 급증하는 출산·육아·초등학생용품 상품명 키워드 TOP 10'
+      }[subCategory] || '현재 네이버 쇼핑에서 검색량이 급증하는 인기 상품명 키워드 TOP 10'
     }
   };
 
   const current = topicMeta[topic] || topicMeta.health;
   const isBlogMode = current.sourceType === 'blog';
   let collectedArticles = [];
+  let topKeywords = [];
   let sourceLabel = isBlogMode ? '네이버 블로그 인기 피드' : '실시간 인기 뉴스 랭킹';
 
-  // 1순위: 네이버 검색 API (건강·쇼핑은 blog.json / 드라마·경제는 news.json 호출)
+  // [트랙 1] 인기글(건강·쇼핑은 블로그 / 드라마·경제는 뉴스) 독립 수집
   if (naverId && naverSecret) {
     try {
       const apiPath = isBlogMode ? 'blog.json' : 'news.json';
@@ -71,12 +72,9 @@ export default async function handler(req, res) {
         }));
         sourceLabel = isBlogMode ? '네이버 블로그 실시간 API' : '네이버 뉴스 실시간 API';
       }
-    } catch (e) {
-      // 다음 단계로 폴백
-    }
+    } catch (e) {}
   }
 
-  // 2순위: 웹 RSS 피드 수집 (건강·쇼핑은 site:blog.naver.com / 드라마·경제는 실시간 뉴스 피드)
   if (collectedArticles.length === 0) {
     try {
       const searchQuery = isBlogMode ? `site:blog.naver.com ${current.query}` : current.query;
@@ -109,43 +107,39 @@ export default async function handler(req, res) {
           link: link.trim()
         };
       }).filter((a) => a.title);
-    } catch (e) {
-      // 다음 단계로 폴백
-    }
+    } catch (e) {}
   }
 
-  // 3순위: Gemini + Google 실시간 검색으로 각 소스 성격에 맞는 TOP 10 키워드 추출
+  // [트랙 2] 인기검색어 TOP 10은 인기글 제목과 겹치지 않게 별도로 실시간 검색 트렌드 조회
   if (geminiKey) {
     try {
-      const contextText = collectedArticles.length > 0
-        ? `현재 수집된 실제 ${isBlogMode ? '네이버 블로그 인기글' : '실시간 인기 뉴스'} 목록:\n${collectedArticles.map((a, i) => `${i + 1}. ${a.title}`).join('\n')}`
-        : `Google 실시간 검색으로 실제 '${isBlogMode ? 'site:blog.naver.com 인기 블로그 글' : '대한민국 최신 인기 뉴스'}'을 찾아 참고하세요.`;
-
+      const avoidTitles = collectedArticles.map((a) => a.title).join(' / ');
       const prompt = `
-당신은 대한민국 실시간 콘텐츠 트렌드 분석가입니다.
-주제 분야: ${current.promptTopic}
-데이터 기준: ${isBlogMode ? '실제 네이버 블로거들이 많이 다루고 검색 유입이 터지는 블로그 인기글 기준' : '실시간 화제성이 높은 인기 뉴스 랭킹 기준'}
-${contextText}
+당신은 대한민국 실시간 검색어 트렌드 분석기입니다.
+Google 실시간 검색을 통해 오늘 기준 "${current.keywordPrompt}" 10개를 조사하세요.
 
-위 흐름을 바탕으로 지금 바로 블로그 원고 주제로 쓰기 좋은 인기 검색어 TOP 10을 추출하세요.
-${collectedArticles.length === 0 ? `또한 ${isBlogMode ? '네이버 인기 블로그 포스팅' : '실시간 인기 뉴스 랭킹 글'} 8개도 함께 구성하세요.` : ''}
+[중요 규칙]
+1. 문장형 글 제목이 아니라, 실제 사용자가 검색창에 입력하는 '짧은 핵심 검색 키워드(2~12자 이내 명사형)'로만 뽑으세요.
+2. 아래 수집된 인기글 제목을 그대로 잘라내지 말고, 실제 검색량 순위 관점에서 독립적인 인기 키워드를 뽑으세요.
+(참고 제외 문장: ${avoidTitles})
+${collectedArticles.length === 0 ? `3. 인기글 목록이 비어있으므로 ${isBlogMode ? '네이버 인기 블로그 글' : '실시간 인기 뉴스'} 8개도 함께 생성하세요.` : ''}
 
 반드시 아래 JSON 형식으로만 응답하세요:
 {
   "keywords": [
-    {"keyword": "인기 검색어 1", "badge": "급상승"},
-    {"keyword": "인기 검색어 2", "badge": "급상승"},
-    {"keyword": "인기 검색어 3", "badge": "인기"},
-    {"keyword": "인기 검색어 4", "badge": "인기"},
-    {"keyword": "인기 검색어 5", "badge": "인기"},
-    {"keyword": "인기 검색어 6", "badge": "화제"},
-    {"keyword": "인기 검색어 7", "badge": "화제"},
-    {"keyword": "인기 검색어 8", "badge": "상승"},
-    {"keyword": "인기 검색어 9", "badge": "상승"},
-    {"keyword": "인기 검색어 10", "badge": "추천"}
+    {"keyword": "검색어1", "badge": "급상승"},
+    {"keyword": "검색어2", "badge": "급상승"},
+    {"keyword": "검색어3", "badge": "인기"},
+    {"keyword": "검색어4", "badge": "인기"},
+    {"keyword": "검색어5", "badge": "인기"},
+    {"keyword": "검색어6", "badge": "화제"},
+    {"keyword": "검색어7", "badge": "화제"},
+    {"keyword": "검색어8", "badge": "상승"},
+    {"keyword": "검색어9", "badge": "상승"},
+    {"keyword": "검색어10", "badge": "추천"}
   ]${collectedArticles.length === 0 ? `,
   "articles": [
-    {"title": "제목", "source": "${isBlogMode ? '네이버 인기 블로그' : '실시간 인기 뉴스'}", "summary": "핵심 포인트 요약 한 줄"}
+    {"title": "인기글 제목", "source": "${isBlogMode ? '네이버 인기 블로그' : '실시간 인기 뉴스'}", "summary": "핵심 포인트 요약"}
   ]` : ''}
 }
 `;
@@ -160,7 +154,7 @@ ${collectedArticles.length === 0 ? `또한 ${isBlogMode ? '네이버 인기 블�
             tools: [{ googleSearch: {} }],
             generationConfig: {
               responseMimeType: 'application/json',
-              temperature: 0.75
+              temperature: 0.85
             }
           })
         }
@@ -170,28 +164,18 @@ ${collectedArticles.length === 0 ? `또한 ${isBlogMode ? '네이버 인기 블�
       const rawText = gData.candidates?.[0]?.content?.parts?.[0]?.text;
       if (rawText) {
         const parsed = JSON.parse(rawText);
-        const finalArticles = collectedArticles.length > 0 ? collectedArticles : (parsed.articles || []);
-        return res.status(200).json({
-          panelTitle: current.title,
-          source: sourceLabel,
-          items: parsed.keywords || [],
-          rankingArticles: finalArticles
-        });
+        topKeywords = parsed.keywords || [];
+        if (collectedArticles.length === 0 && parsed.articles) {
+          collectedArticles = parsed.articles;
+        }
       }
-    } catch (e) {
-      // Gemini 오류 시 수집된 목록에서 키워드 구성
-    }
+    } catch (e) {}
   }
-
-  const fallbackKeywords = collectedArticles.slice(0, 10).map((a, idx) => ({
-    keyword: a.title.split(/[,\-·?!]/)[0].trim().slice(0, 18),
-    badge: idx < 2 ? '급상승' : '인기'
-  }));
 
   return res.status(200).json({
     panelTitle: current.title,
     source: sourceLabel,
-    items: fallbackKeywords,
+    items: topKeywords,
     rankingArticles: collectedArticles
   });
 }
