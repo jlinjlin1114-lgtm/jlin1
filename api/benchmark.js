@@ -10,7 +10,6 @@ export default async function handler(req, res) {
 
   let extractedText = manualText || '';
 
-  // URL이 입력된 경우 네이버 블로그 홈 주소 및 개별 포스팅 URL 모두 처리
   if (!extractedText && !imageBase64 && url) {
     try {
       let targetUrl = url.trim();
@@ -18,14 +17,11 @@ export default async function handler(req, res) {
         'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
       };
 
-      // 네이버 블로그 메인 홈 주소(예: https://blog.naver.com/mini1319)인 경우 최신 글 주소를 자동 탐색
       const blogHomeMatch = targetUrl.match(/blog\.naver\.com\/([a-zA-Z0-9_-]+)\/?$/);
       if (blogHomeMatch) {
         const blogId = blogHomeMatch[1];
         const listRes = await fetch(`https://m.blog.naver.com/PostList.naver?blogId=${blogId}`, { headers });
         const listHtml = await listRes.text();
-
-        // 최신 게시글 번호(logNo) 추출
         const logNoMatch = listHtml.match(/logNo=(\d{10,})/) || listHtml.match(/"logNo"\s*:\s*"?(\d{10,})"?/);
         if (logNoMatch) {
           targetUrl = `https://m.blog.naver.com/${blogId}/${logNoMatch[1]}`;
@@ -85,7 +81,7 @@ ${extractedText ? `[분석 대상 텍스트]\n${extractedText}` : '[분석 대�
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -98,7 +94,6 @@ ${extractedText ? `[분석 대상 텍스트]\n${extractedText}` : '[분석 대�
 
     const data = await response.json();
 
-    // Gemini API 자체 에러 메시지 안전 처리
     if (!response.ok || data.error) {
       const apiErrMsg = data.error?.message || `HTTP ${response.status} 오류`;
       return res.status(500).json({ error: `Gemini API 오류: ${apiErrMsg}` });
