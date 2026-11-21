@@ -25,7 +25,7 @@
         <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg">B</div>
         <div>
           <h1 class="font-bold text-slate-900 text-base sm:text-lg leading-tight">홈판 & 쇼핑 커넥트 스튜디오</h1>
-          <p class="text-xs text-slate-500">주제별 실시간 인기검색 연동 · 벤치마킹 구조·말투 복제 창작</p>
+          <p class="text-xs text-slate-500">네이버 랭킹 글 · 실시간 인기검색 · 이미지 벤치마킹 복제</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -60,23 +60,23 @@
             <span class="text-emerald-600 font-bold text-sm"><i class="fa-solid fa-leaf mr-1.5"></i>건강 · 웰니스</span>
             <span class="text-[11px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">1,200자 규칙</span>
           </div>
-          <p class="text-xs text-slate-600 line-clamp-2">건강 실시간 인기검색 연동 · 벤치마킹 구조·말투 복제 후 신규 창작</p>
+          <p class="text-xs text-slate-600 line-clamp-2">건강 랭킹 글·인기검색 연동 · 벤치마킹 구조·말투 복제 후 신규 창작</p>
         </button>
 
         <button onclick="selectTopic('drama')" id="card-drama" class="topic-card text-left p-4 rounded-xl border-2 border-slate-200">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-violet-600 font-bold text-sm"><i class="fa-solid fa-tv mr-1.5"></i>드라마 · 연예</span>
-            <span class="text-[11px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 font-semibold">실시간 화제</span>
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 font-semibold">연예랭킹</span>
           </div>
-          <p class="text-xs text-slate-600 line-clamp-2">드라마·방송 인기검색 연동 · 방영 반응 요약 및 스타일 복제 모두 지원</p>
+          <p class="text-xs text-slate-600 line-clamp-2">드라마·연예 랭킹 글·인기검색 연동 · 방영 반응 요약 및 스타일 복제</p>
         </button>
 
         <button onclick="selectTopic('economy')" id="card-economy" class="topic-card text-left p-4 rounded-xl border-2 border-slate-200">
           <div class="flex items-center justify-between mb-1.5">
             <span class="text-blue-600 font-bold text-sm"><i class="fa-solid fa-chart-line mr-1.5"></i>경제 · 이슈</span>
-            <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-semibold">가계 연결</span>
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-semibold">경제랭킹</span>
           </div>
-          <p class="text-xs text-slate-600 line-clamp-2">경제·금융 인기검색 연동 · 3줄 요약·생활 대처법 및 스타일 복제 지원</p>
+          <p class="text-xs text-slate-600 line-clamp-2">경제·금융 랭킹 글·인기검색 연동 · 3줄 요약·생활 대처법 및 스타일 복제</p>
         </button>
 
         <button onclick="selectTopic('shopping')" id="card-shopping" class="topic-card text-left p-4 rounded-xl border-2 border-slate-200">
@@ -88,41 +88,56 @@
         </button>
       </div>
 
-      <!-- 규칙 편집기 (토글) -->
+      <!-- 규칙 편집기 -->
       <div id="ruleEditorBox" class="hidden mt-4 pt-4 border-t border-slate-100">
         <label class="block text-xs font-bold text-slate-700 mb-1.5">현재 선택된 주제의 기본 AI 글쓰기 규칙 (자동 저장)</label>
         <textarea id="ruleTextarea" rows="3" onchange="saveCustomRule()" class="w-full text-xs p-3 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900"></textarea>
       </div>
     </section>
 
-    <!-- 전 주제 공통: 주제별 실시간 인기 검색어 TOP 10 패널 -->
+    <!-- 전 주제 공통: 인기검색어 TOP 10 + 네이버 메인 인기 랭킹 글 패널 -->
     <section id="trendPanel" class="rounded-2xl border p-5 shadow-sm transition-colors bg-emerald-50/70 border-emerald-200">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div>
           <h3 id="trendPanelTitle" class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
             <i class="fa-solid fa-fire text-rose-500"></i>
-            <span>건강 · 웰니스 실시간 인기 검색어 TOP 10</span>
+            <span>건강 · 웰니스 실시간 트렌드</span>
             <span id="trendSourceTag" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white text-slate-700 border border-slate-200">불러오는 중...</span>
           </h3>
-          <p class="text-xs text-slate-600 mt-0.5">인기 키워드를 클릭하면 아래 글감 입력창에 바로 들어갑니다.</p>
+          <p class="text-xs text-slate-600 mt-0.5">키워드나 랭킹 글을 클릭하면 아래 글감 입력창에 제목과 핵심 포인트가 자동으로 들어갑니다.</p>
         </div>
 
-        <!-- 쇼핑 커넥트 전용 세부 카테고리 버튼 -->
-        <div id="shoppingSubCats" class="hidden flex flex-wrap items-center gap-1.5">
-          <button onclick="loadTrends('shopping', 'all')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-orange-600 text-white" data-cat="all">전체</button>
-          <button onclick="loadTrends('shopping', 'living')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="living">생활/건강</button>
-          <button onclick="loadTrends('shopping', 'food')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="food">식품</button>
-          <button onclick="loadTrends('shopping', 'digital')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="digital">디지털/가전</button>
-          <button onclick="loadTrends('shopping', 'kids')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="kids">출산/육아</button>
-        </div>
+        <!-- 탭 전환: 인기검색어 TOP 10 vs 네이버 메인 랭킹 글 -->
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="inline-flex rounded-xl bg-white p-1 border border-slate-200 shadow-xs">
+            <button id="tabBtnKeywords" onclick="switchTrendTab('keywords')" class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition">
+              인기검색어 TOP 10
+            </button>
+            <button id="tabBtnArticles" onclick="switchTrendTab('articles')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+              <i class="fa-solid fa-ranking-star text-amber-500 mr-1"></i>네이버 메인 랭킹 글
+            </button>
+          </div>
 
-        <!-- 일반 주제 새로고침 버튼 -->
-        <button id="btnRefreshTrend" onclick="loadTrends(currentTopic)" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 border border-slate-200 shadow-xs">
-          <i class="fa-solid fa-rotate-right mr-1"></i>순위 새로고침
-        </button>
+          <button id="btnRefreshTrend" onclick="loadTrends(currentTopic)" class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 border border-slate-200 shadow-xs">
+            <i class="fa-solid fa-rotate-right mr-1"></i>새로고침
+          </button>
+        </div>
       </div>
 
+      <!-- 쇼핑 커넥트 전용 세부 카테고리 버튼 -->
+      <div id="shoppingSubCats" class="hidden flex flex-wrap items-center gap-1.5 mb-3">
+        <button onclick="loadTrends('shopping', 'all')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-orange-600 text-white" data-cat="all">전체</button>
+        <button onclick="loadTrends('shopping', 'living')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="living">생활/건강</button>
+        <button onclick="loadTrends('shopping', 'food')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="food">식품</button>
+        <button onclick="loadTrends('shopping', 'digital')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="digital">디지털/가전</button>
+        <button onclick="loadTrends('shopping', 'kids')" class="cat-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-orange-200" data-cat="kids">출산/육아</button>
+      </div>
+
+      <!-- 탭 1: 인기검색어 리스트 -->
       <div id="trendKeywordList" class="grid grid-cols-2 sm:grid-cols-5 gap-2"></div>
+
+      <!-- 탭 2: 네이버 메인 인기 랭킹 글 리스트 -->
+      <div id="rankingArticleList" class="hidden grid grid-cols-1 md:grid-cols-2 gap-2.5"></div>
     </section>
 
     <!-- 2단 그리드: 벤치마킹 분석 + 글감 입력 -->
@@ -143,7 +158,7 @@
             </label>
           </div>
           <p class="text-[11px] text-slate-500 mb-3">
-            벤치마킹 글을 넣으면 <strong>구조와 말투만 똑같이 따오고 내용은 100% 새롭게 창작</strong>합니다. 비워두면 주제 기본 규칙으로 작성됩니다.
+            URL, 본문 텍스트, 또는 <strong>캡처 이미지(Ctrl+V 붙여넣기 가능)</strong>를 넣으면 구조와 말투만 똑같이 따오고 내용은 100% 새롭게 창작합니다.
           </p>
 
           <div class="space-y-2.5">
@@ -158,21 +173,43 @@
                 구조·말투 추출
               </button>
             </div>
-            <details class="text-xs text-slate-500">
-              <summary class="cursor-pointer hover:text-slate-800 font-medium">URL 접근이 막힌 글은 본문 직접 붙여넣기</summary>
-              <div class="relative mt-2">
-                <textarea id="manualBenchmarkText" rows="3" placeholder="참고할 인기글의 제목과 본문을 복사해 붙여넣은 뒤 [구조·말투 추출]을 누르세요." class="w-full p-2.5 pr-8 rounded-xl border border-slate-300 text-slate-800 focus:outline-none focus:border-indigo-600"></textarea>
-                <button type="button" onclick="clearField('manualBenchmarkText')" title="붙여넣은 본문 지우기" class="absolute right-2 top-2 text-slate-400 hover:text-slate-700 text-xs p-1">
-                  <i class="fa-solid fa-circle-xmark"></i>
-                </button>
+
+            <!-- 본문 텍스트 또는 캡처 이미지 직접 입력 영역 -->
+            <details open class="text-xs text-slate-600 bg-slate-50/70 p-3 rounded-xl border border-slate-200">
+              <summary class="cursor-pointer hover:text-slate-900 font-bold flex items-center justify-between">
+                <span><i class="fa-regular fa-image text-indigo-600 mr-1"></i>본문 텍스트 또는 캡처 이미지로 넣기</span>
+              </summary>
+              <div class="mt-2.5 space-y-2">
+                <div class="relative">
+                  <textarea id="manualBenchmarkText" rows="2" placeholder="본문 텍스트를 붙여넣거나, 캡처한 이미지를 이 칸에 대고 Ctrl+V로 바로 붙여넣으세요!" class="w-full p-2.5 pr-8 rounded-xl border border-slate-300 bg-white text-slate-800 focus:outline-none focus:border-indigo-600"></textarea>
+                  <button type="button" onclick="clearField('manualBenchmarkText')" title="텍스트 지우기" class="absolute right-2 top-2 text-slate-400 hover:text-slate-700 text-xs p-1">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                  </button>
+                </div>
+
+                <!-- 이미지 파일 선택 & 미리보기 -->
+                <div class="flex items-center justify-between gap-2">
+                  <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 font-semibold text-xs transition">
+                    <i class="fa-solid fa-camera"></i>
+                    <span>캡처 이미지 선택</span>
+                    <input type="file" id="benchmarkImageInput" accept="image/*" onchange="handleImageFile(event)" class="hidden" />
+                  </label>
+                  <span id="imageFileName" class="text-[11px] text-slate-500 truncate flex-1">선택된 이미지 없음</span>
+                  <button type="button" id="btnRemoveImage" onclick="clearBenchmarkImage()" class="hidden text-[11px] text-rose-500 hover:text-rose-700 font-semibold">
+                    이미지 삭제
+                  </button>
+                </div>
+                <div id="imagePreviewWrap" class="hidden mt-2 relative rounded-lg overflow-hidden border border-slate-200 bg-white p-1">
+                  <img id="benchmarkImagePreview" src="" alt="벤치마킹 캡처 미리보기" class="max-h-36 mx-auto object-contain rounded" />
+                </div>
               </div>
             </details>
           </div>
 
           <!-- 추출 결과 카드 -->
-          <div id="benchmarkResultBox" class="mt-4 p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+          <div id="benchmarkResultBox" class="mt-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs">
             <div class="flex items-center justify-between">
-              <span class="font-bold text-indigo-700" id="bmBlogName"><i class="fa-solid fa-dna mr-1"></i>추출된 스타일 없음 (기본 주제 규칙으로 작동)</span>
+              <span class="font-bold text-indigo-700" id="bmBlogName"><i class="fa-solid fa-dna mr-1"></i>추출된 스타일 없음 (기본 주제 규칙 작동)</span>
               <button onclick="clearBenchmark()" id="btnClearBm" class="hidden text-[11px] font-semibold text-rose-500 hover:text-rose-700 bg-rose-50 px-2 py-0.5 rounded">스타일 지우기</button>
             </div>
             <p class="text-slate-600"><strong class="text-slate-800">제목 공식:</strong> <span id="bmTitlePattern">-</span></p>
@@ -198,18 +235,18 @@
 
           <div class="space-y-3">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">핵심 키워드 또는 상품명 *</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1">핵심 키워드, 랭킹 이슈 또는 상품명 *</label>
               <div class="relative">
-                <input type="text" id="mainKeyword" placeholder="위 실시간 인기 검색어를 클릭하거나 직접 입력하세요" class="w-full text-sm pl-3.5 pr-9 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900" />
+                <input type="text" id="mainKeyword" placeholder="위 인기검색어나 네이버 메인 랭킹 글을 클릭하거나 직접 입력하세요" class="w-full text-sm pl-3.5 pr-9 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900" />
                 <button type="button" onclick="clearField('mainKeyword')" title="키워드 지우기" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 text-sm p-1">
                   <i class="fa-solid fa-circle-xmark"></i>
                 </button>
               </div>
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">꼭 들어갈 포인트 / 개인 경험 / 상품 특징 (선택)</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1">꼭 들어갈 포인트 / 참고 랭킹 글 요약 / 개인 경험 (선택)</label>
               <div class="relative">
-                <textarea id="subMemo" rows="3" placeholder="예: 40대 워킹맘 시선에서 가족 건강 챙기는 일상 에피소드 추가, 과장 없이 담백하게" class="w-full text-xs p-3 pr-9 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900"></textarea>
+                <textarea id="subMemo" rows="5" placeholder="예: 40대 워킹맘 시선에서 가족 건강 챙기는 일상 에피소드 추가, 과장 없이 담백하게" class="w-full text-xs p-3 pr-9 rounded-xl border border-slate-300 focus:outline-none focus:border-slate-900"></textarea>
                 <button type="button" onclick="clearField('subMemo')" title="메모 지우기" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-700 text-sm p-1">
                   <i class="fa-solid fa-circle-xmark"></i>
                 </button>
@@ -297,10 +334,57 @@
     };
 
     let currentTopic = 'health';
+    let currentTrendTab = 'keywords';
     let benchmarkData = null;
+    let benchmarkImageBase64 = null;
+    let benchmarkImageMime = null;
     let selectedTitle = '';
 
-    // 개별 필드 지우기
+    // 클립보드 캡처 이미지(Ctrl+V) 붙여넣기 지원
+    window.addEventListener('paste', (e) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            processImageFile(file, '클립보드 캡처 이미지.png');
+          }
+          break;
+        }
+      }
+    });
+
+    function handleImageFile(event) {
+      const file = event.target.files?.[0];
+      if (file) processImageFile(file, file.name);
+    }
+
+    function processImageFile(file, displayName) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        benchmarkImageBase64 = dataUrl.split(',')[1];
+        benchmarkImageMime = file.type || 'image/png';
+
+        document.getElementById('benchmarkImagePreview').src = dataUrl;
+        document.getElementById('imagePreviewWrap').classList.remove('hidden');
+        document.getElementById('imageFileName').textContent = displayName;
+        document.getElementById('btnRemoveImage').classList.remove('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearBenchmarkImage() {
+      benchmarkImageBase64 = null;
+      benchmarkImageMime = null;
+      document.getElementById('benchmarkImageInput').value = '';
+      document.getElementById('benchmarkImagePreview').src = '';
+      document.getElementById('imagePreviewWrap').classList.add('hidden');
+      document.getElementById('imageFileName').textContent = '선택된 이미지 없음';
+      document.getElementById('btnRemoveImage').classList.add('hidden');
+    }
+
     function clearField(id) {
       const el = document.getElementById(id);
       if (el) {
@@ -309,14 +393,12 @@
       }
     }
 
-    // 3단계 글감 입력만 지우기
     function clearInputs() {
       document.getElementById('mainKeyword').value = '';
       document.getElementById('subMemo').value = '';
       document.getElementById('mainKeyword').focus();
     }
 
-    // 생성 결과 닫기 및 비우기
     function clearResult() {
       document.getElementById('resultSection').classList.add('hidden');
       document.getElementById('titleCandidates').innerHTML = '';
@@ -326,7 +408,6 @@
       selectedTitle = '';
     }
 
-    // 상단 전체 초기화 (벤치마킹 + 입력값 + 결과창 모두 비움)
     function resetAllWorkspace() {
       clearBenchmark();
       clearInputs();
@@ -349,19 +430,35 @@
 
       const rules = getRules();
       document.getElementById('ruleTextarea').value = rules[topic];
-
       document.getElementById('trendPanel').className = panelStyles[topic];
-      const subCats = document.getElementById('shoppingSubCats');
-      const refreshBtn = document.getElementById('btnRefreshTrend');
 
+      const subCats = document.getElementById('shoppingSubCats');
       if (topic === 'shopping') {
         subCats.classList.remove('hidden');
-        refreshBtn.classList.add('hidden');
         loadTrends('shopping', 'all');
       } else {
         subCats.classList.add('hidden');
-        refreshBtn.classList.remove('hidden');
         loadTrends(topic);
+      }
+    }
+
+    function switchTrendTab(tab) {
+      currentTrendTab = tab;
+      const btnKw = document.getElementById('tabBtnKeywords');
+      const btnArt = document.getElementById('tabBtnArticles');
+      const listKw = document.getElementById('trendKeywordList');
+      const listArt = document.getElementById('rankingArticleList');
+
+      if (tab === 'keywords') {
+        btnKw.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition';
+        btnArt.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+        listKw.classList.remove('hidden');
+        listArt.classList.add('hidden');
+      } else {
+        btnArt.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white transition';
+        btnKw.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition';
+        listArt.classList.remove('hidden');
+        listKw.classList.add('hidden');
       }
     }
 
@@ -385,7 +482,9 @@
       }
 
       const listEl = document.getElementById('trendKeywordList');
-      listEl.innerHTML = '<p class="text-xs text-slate-600 col-span-full">실시간 인기 검색 순위를 불러오는 중입니다...</p>';
+      const artEl = document.getElementById('rankingArticleList');
+      listEl.innerHTML = '<p class="text-xs text-slate-600 col-span-full">데이터를 불러오는 중입니다...</p>';
+      artEl.innerHTML = '<p class="text-xs text-slate-600 col-span-full">네이버 메인 랭킹 글을 불러오는 중입니다...</p>';
 
       try {
         const res = await fetch(`/api/trends?topic=${topic}&subCategory=${subCategory}`);
@@ -393,13 +492,26 @@
 
         document.querySelector('#trendPanelTitle span:nth-child(2)').textContent = data.panelTitle;
         document.getElementById('trendSourceTag').textContent =
-          data.source === 'naver_datalab_live' ? '네이버 데이터랩 실시간' : '시즌 인기 트렌드';
+          data.source === 'naver_live_api' ? '네이버 실시간 API 연동됨' : '실시간 인기 큐레이션';
 
         listEl.innerHTML = data.items.map((item, i) => `
-          <button onclick="pickTrendKeyword('${item.keyword}')" class="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-slate-900 hover:text-white border border-slate-200/90 text-left transition group">
+          <button onclick="pickTrendKeyword('${item.keyword.replace(/'/g, "\\'")}')" class="flex items-center justify-between p-2.5 rounded-xl bg-white hover:bg-slate-900 hover:text-white border border-slate-200/90 text-left transition group">
             <span class="text-xs font-bold text-slate-800 group-hover:text-white truncate"><span class="text-indigo-600 group-hover:text-amber-300 mr-1.5">${i + 1}.</span>${item.keyword}</span>
             <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 group-hover:bg-slate-700 text-slate-700 group-hover:text-slate-200 font-semibold shrink-0">${item.badge}</span>
           </button>
+        `).join('');
+
+        artEl.innerHTML = (data.rankingArticles || []).map((art, i) => `
+          <div onclick="pickRankingArticle('${art.title.replace(/'/g, "\\'")}', '${(art.summary || '').replace(/'/g, "\\'")}')" class="cursor-pointer p-3 rounded-xl bg-white hover:bg-slate-900 border border-slate-200 transition group flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-1">
+                <span class="text-[11px] font-bold text-amber-600 group-hover:text-amber-300">TOP ${i + 1} · ${art.source}</span>
+                ${art.link ? `<a href="${art.link}" target="_blank" onclick="event.stopPropagation()" class="text-[11px] text-slate-400 hover:text-indigo-400 underline">원문보기</a>` : ''}
+              </div>
+              <p class="text-xs font-bold text-slate-900 group-hover:text-white line-clamp-1">${art.title}</p>
+              <p class="text-[11px] text-slate-500 group-hover:text-slate-300 line-clamp-1 mt-0.5">${art.summary || ''}</p>
+            </div>
+          </div>
         `).join('');
       } catch (e) {
         listEl.innerHTML = '<p class="text-xs text-red-600 col-span-full">순위를 불러오지 못했습니다.</p>';
@@ -408,6 +520,11 @@
 
     function pickTrendKeyword(kw) {
       document.getElementById('mainKeyword').value = kw;
+    }
+
+    function pickRankingArticle(title, summary) {
+      document.getElementById('mainKeyword').value = title;
+      document.getElementById('subMemo').value = `[참고 랭킹 이슈 핵심]\n${summary}\n\n→ 위 이슈를 바탕으로 독자들이 궁금해할 핵심 포인트를 알기 쉽게 풀어서 작성해 주세요.`;
     }
 
     function updateModeBadge() {
@@ -425,8 +542,8 @@
     async function analyzeBenchmark() {
       const url = document.getElementById('benchmarkUrl').value.trim();
       const manualText = document.getElementById('manualBenchmarkText').value.trim();
-      if (!url && !manualText) {
-        alert('벤치마킹할 블로그 URL을 입력하거나 본문을 붙여넣어 주세요.');
+      if (!url && !manualText && !benchmarkImageBase64) {
+        alert('벤치마킹할 블로그 URL, 본문 텍스트, 또는 캡처 이미지를 넣어주세요.');
         return;
       }
 
@@ -438,7 +555,12 @@
         const res = await fetch('/api/benchmark', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url, manualText })
+          body: JSON.stringify({
+            url,
+            manualText,
+            imageBase64: benchmarkImageBase64,
+            imageMimeType: benchmarkImageMime
+          })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || '분석 실패');
@@ -463,7 +585,8 @@
       benchmarkData = null;
       document.getElementById('benchmarkUrl').value = '';
       document.getElementById('manualBenchmarkText').value = '';
-      document.getElementById('bmBlogName').innerHTML = '<i class="fa-solid fa-dna mr-1"></i>추출된 스타일 없음 (기본 주제 규칙으로 작동)';
+      clearBenchmarkImage();
+      document.getElementById('bmBlogName').innerHTML = '<i class="fa-solid fa-dna mr-1"></i>추출된 스타일 없음 (기본 주제 규칙 작동)';
       document.getElementById('bmTitlePattern').textContent = '-';
       document.getElementById('bmTone').textContent = '-';
       document.getElementById('bmStructure').textContent = '-';
@@ -474,7 +597,7 @@
     async function generatePost() {
       const keyword = document.getElementById('mainKeyword').value.trim();
       if (!keyword) {
-        alert('핵심 키워드 또는 상품명을 입력해 주세요!');
+        alert('핵심 키워드, 랭킹 이슈 또는 상품명을 입력해 주세요!');
         return;
       }
 
