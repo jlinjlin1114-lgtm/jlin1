@@ -24,7 +24,7 @@
         <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-base">B</div>
         <div>
           <h1 class="font-bold text-slate-900 text-sm sm:text-base leading-tight">심플 블로그 & 제미나이 스튜디오</h1>
-          <p class="text-[11px] text-slate-500 hidden sm:block">초고속 직접 연동 · 벤치마킹 복제 창작 · AI 채팅 · 최근 10개 보관</p>
+          <p class="text-[11px] text-slate-500 hidden sm:block">자동 혼잡 우회 · 벤치마킹 복제 창작 · AI 채팅 · 최근 10개 보관</p>
         </div>
       </div>
 
@@ -47,7 +47,7 @@
       </div>
     </div>
 
-    <!-- API 키 직접 입력 바 (필요 시 열림) -->
+    <!-- API 키 직접 입력 바 -->
     <div id="apiKeyBar" class="hidden bg-amber-50 border-b border-amber-200 px-4 py-3">
       <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-2 text-xs">
         <span class="font-bold text-amber-900"><i class="fa-solid fa-key mr-1"></i>내 Gemini API 키:</span>
@@ -290,7 +290,47 @@
     const HISTORY_KEY = 'jlin_blog_history_v1';
     const RULE_KEY = 'jlin_blog_rules_v1';
 
-    // 서버 환경변수에서 API 키 자동 로드 (Vercel 10초 제한 우회용)
+    // 모델 혼잡(High Demand) 시 자동으로 다음 여유 모델로 갈아타는 스마트 호출기
+    async function callGeminiWithFallback(payload, onStatus) {
+      const models = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-2.5-flash', 'gemini-3.8-pro'];
+      let lastError = '서버 연결에 실패했습니다.';
+
+      for (let i = 0; i < models.length; i++) {
+        const model = models[i];
+        if (onStatus && i > 0) {
+          onStatus(`트래픽 혼잡으로 예비 모델(${model})로 자동 전환하여 작성 중...`);
+        }
+
+        try {
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            }
+          );
+
+          const data = await res.json();
+          if (res.ok && !data.error) {
+            return data;
+          }
+
+          lastError = data.error?.message || `HTTP ${res.status}`;
+          // 혼잡(503)이거나 해당 모델 미지원(404)일 경우 다음 모델로 즉시 전환
+          if (res.status === 503 || res.status === 429 || res.status === 404 || lastError.includes('high demand') || lastError.includes('no longer available')) {
+            continue;
+          } else {
+            throw new Error(lastError);
+          }
+        } catch (err) {
+          lastError = err.message;
+        }
+      }
+
+      throw new Error(`현재 Google AI 서버 전체에 접속자가 많습니다. 5초 후 다시 한 번 눌러주세요! (${lastError})`);
+    }
+
     async function initApiKey() {
       if (geminiApiKey) {
         updateKeyStatusUI(true);
@@ -338,7 +378,6 @@
       alert('API 키가 저장되었습니다!');
     }
 
-    // 클립보드 캡처 이미지(Ctrl+V) 붙여넣기
     window.addEventListener('paste', (e) => {
       const items = e.clipboardData?.items;
       if (!items) return;
@@ -494,7 +533,6 @@
       }
     }
 
-    // 브라우저에서 Google Gemini API 직접 호출 (Vercel 10초 타임아웃 제한 완전 해결!)
     async function generateArticle() {
       const keyword = document.getElementById('newKeyword').value.trim();
       if (!keyword) {
@@ -551,22 +589,15 @@ ${benchmarkInstruction}
       }
 
       try {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiApiKey}`,
+        const gData = await callGeminiWithFallback(
           {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts }],
-              generationConfig: { temperature: 0.78 }
-            })
+            contents: [{ parts }],
+            generationConfig: { temperature: 0.78 }
+          },
+          (statusText) => {
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i><span>${statusText}</span>`;
           }
         );
-
-        const gData = await res.json();
-        if (!res.ok || gData.error) {
-          throw new Error(gData.error?.message || `API 오류 (${res.status})`);
-        }
 
         const rawText = gData.candidates?.[0]?.content?.parts?.[0]?.text || '';
         const jsonMatch = rawText.match(/\{[\s\S]*\}/);
@@ -722,7 +753,6 @@ ${benchmarkInstruction}
         </div>`;
     }
 
-    // 채팅도 브라우저 직접 호출로 10초 제한 없이 즉시 응답
     async function sendChat() {
       const input = document.getElementById('chatInput');
       const text = input.value.trim();
@@ -756,26 +786,17 @@ ${benchmarkInstruction}
       }));
 
       try {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiApiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: systemContext }] },
-              contents,
-              generationConfig: { temperature: 0.75 }
-            })
-          }
-        );
-        const data = await res.json();
-        if (!res.ok || data.error) throw new Error(data.error?.message || '채팅 오류');
+        const data = await callGeminiWithFallback({
+          systemInstruction: { parts: [{ text: systemContext }] },
+          contents,
+          generationConfig: { temperature: 0.75 }
+        });
 
         const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '응답을 생성하지 못했습니다.';
         chatHistory.push({ role: 'model', text: reply });
         appendChatBubble('model', reply);
       } catch (err) {
-        appendChatBubble('model', `오류가 발생했습니다: ${err.message}`);
+        appendChatBubble('model', `안내: ${err.message}`);
       } finally {
         btn.disabled = false;
         btn.textContent = '전송';
